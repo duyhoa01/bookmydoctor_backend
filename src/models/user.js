@@ -57,6 +57,10 @@ module.exports = (sequelize, DataTypes) => {
     role_id: {
       type:DataTypes.INTEGER,
       allowNull:true
+    },
+    token: {
+      type:DataTypes.STRING,
+      allowNull:true
     }
   }, {
     sequelize,
