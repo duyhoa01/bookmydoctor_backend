@@ -1,7 +1,14 @@
-const authRouter= require('./auth')
+// const authRouter= require('./auth')
+const auth = require('./auth')
+const express = require('express')
+const router=express.Router()
 
-function route(app){
-    app.use('/api/auth',authRouter);
-}
+router.get("/status",(req,res)=>{
+res.status(200).json({status:'ok'})
+})
 
-module.exports = route;
+router.use('/auth',auth)
+module.exports = router;
+
+router.use('/user',auth)
+module.exports = router;
