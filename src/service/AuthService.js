@@ -1,4 +1,7 @@
 const db = require('../models/index');
+const userService = require('./UserService');
+const bcrypt = require('bcryptjs');
+
 let handleUserLogin = (email, password) => {
     return new Promise(async(resolve, reject) => {
         try {
@@ -11,26 +14,35 @@ let handleUserLogin = (email, password) => {
                         required: true,
                         as : 'role'
                     },
-                    where: { email: email, password: password},
+                    where: { email: email},
                     attributes: ['email', 'password', 'role_id', 'firsname', 'lastname', 'status'],
                     raw: true
                 });
                 if (user) {
-                    if(user.status == 0){
-                        userData.errCode = 0;
-                        userData.errMessage = "Tai khoan chua xac thuc hoac da bi khoa";
+                    let check = await bcrypt.compareSync(password, user.password);
+                    if(!check) {
+                        console.log(pass);
+                        console.log(user.password);
+                        userData.errCode = 4;
+                        userData.errMessage = "Sai mat khau";
                     }
                     else {
-                        userData.errCode = 0;
-                        userData.errMessage = "0k";
-    
-                        delete user.password;
-                        userData.user = user;
+                        if(user.status == 0){
+                            userData.errCode = 5;
+                            userData.errMessage = "Tai khoan chua xac thuc hoac da bi khoa";
+                        }
+                        else {
+                            userData.errCode = 0;
+                            userData.errMessage = "0k";
+        
+                            delete user.password;
+                            userData.user = user;
+                        }
                     }
 
                 } else {
                     userData.errCode = 3;
-                    userData.errMessage = "Sai mat khau";
+                    userData.errMessage = "Tai khoan da bi khoa";
                 }
 
             } else {

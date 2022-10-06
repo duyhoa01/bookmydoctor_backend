@@ -6,4 +6,4 @@ router.route('/login').post(authController.handleLogin);
 router.post('/singup',authController.upload,authController.singup);
 router.get('/verify-account',authController.verifyUser)
 
-module.exports = auth
+module.exports = router;
