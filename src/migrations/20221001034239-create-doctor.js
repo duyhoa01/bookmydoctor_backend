@@ -32,6 +32,10 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull:true,
       },
+      specialty_id: {
+        type: Sequelize.INTEGER,
+        allowNull:false,
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
