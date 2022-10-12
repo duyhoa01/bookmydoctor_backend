@@ -46,8 +46,8 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true,
     } ,
-    age: {
-      type: DataTypes.INTEGER,
+    birthday: {
+      type: DataTypes.DATE,
       allowNull: true,
     } ,
     status: {

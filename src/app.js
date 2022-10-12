@@ -10,7 +10,7 @@ app.use(bodyParser.json())
 const route= require('./routes')
 
 // Route init
-route(app);
+app.use('/api',route);
 
 //static folder
 
