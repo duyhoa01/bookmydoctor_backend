@@ -40,6 +40,10 @@ module.exports = (sequelize, DataTypes) => {
       type:DataTypes.INTEGER,
       allowNull:true,
     },
+    specialty_id: {
+      type:DataTypes.INTEGER,
+      allowNull:false,
+    },
   }, {
     sequelize,
     modelName: 'Doctor',

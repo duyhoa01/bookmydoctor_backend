@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const db = require('../models');
 const emailService = require('./emailService')
-const {v4 : uuidv4} = require ('uuid')
+const { v4: uuidv4 } = require('uuid')
 
 const salt = bcrypt.genSaltSync(10);
 
@@ -121,7 +121,7 @@ let verifyUser = (data)=>{
                         errCode:0,
                         errMessage: 'Xac thuc thanh cong'
                     })
-                } else{
+                } else {
                     resolve({
                         errCode:2,
                         errMessage: 'Tai khoan da duoc kich hoat hoac khong ton tai'
@@ -135,13 +135,54 @@ let verifyUser = (data)=>{
     })
 } 
 
+let createUser = (data, roleName) => {
+    return new Promise(async(resolve, reject) => {
+        let userData = {};
+        try {
+            let check = await checkUserEmail(data.email);
+            if(!check) {
+                let [role, created] = await db.Role.findOrCreate({
+                    where: { name: roleName }
+                });
+                let hashPasswordFromBcrypt = await hashUserPassword(data.password);
+                const user = await db.User.create(
+                    {
+                        email: data.email,
+                        password: hashPasswordFromBcrypt,
+                        firsname: data.firsname,
+                        lastname: data.lastname,
+                        image: data.image,
+                        gender: data.gender === '1' ? true : false,
+                        phoneNumber: data.phoneNumber,
+                        age: data.age,
+                        status: data.status,
+                        role_id: role.id,
+                    },
+                    
+                )
+                userData.errCode = 0;
+                userData.errMessage = "Ok";
+                userData.user = user;
+                
+            } else {
+                userData.errCode = 1;
+                userData.errMessage = "email da ton tai";
+            }
+            resolve(userData);
+        } catch (err) {
+            reject(err);
+        };
+    });
+}
+
 
 module.exports = {
     checkUserEmail:checkUserEmail,
     hashUserPassword:hashUserPassword,
     buildUrlEmail:buildUrlEmail,
     createNewUser:createNewUser,
-    verifyUser:verifyUser
+    verifyUser:verifyUser,
+    createUser: createUser
 }
 
 

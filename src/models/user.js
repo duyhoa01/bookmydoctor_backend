@@ -16,6 +16,9 @@ module.exports = (sequelize, DataTypes) => {
       this.hasOne(models.Collaborator,{foreignKey:'user_id',as:'collaborator'})
       this.hasOne(models.Admin,{foreignKey:'user_id',as:'admin'})
     }
+    // toJSON(){
+    //   return {...this.get(), password: undefined}
+    // }
   }
   User.init({
     email:{

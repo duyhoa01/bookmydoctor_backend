@@ -3,6 +3,7 @@ const auth = require('./auth')
 const express = require('express')
 const router=express.Router()
 const patient = require('./patient')
+const doctor = require('./doctor')
 
 
 router.get("/status",(req,res)=>{
@@ -11,18 +12,10 @@ router.get("/status",(req,res)=>{
 
 
 router.use('/auth',auth)
-module.exports = router;
-
-
-router.use('/auth',auth)
-module.exports = router;
 
 router.use('/user',auth)
-module.exports = router;
-
-
-router.use('/auth',auth)
-module.exports = router;
 
 router.use('/patients',patient)
+
+router.use('/doctor',doctor)
 module.exports = router;
