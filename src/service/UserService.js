@@ -36,12 +36,12 @@ let hashUserPassword = (password) => {
     })
 }
 
-let buildUrlEmail = (token) => {
-    let result = `${process.env.HOST_BASE}/api/auth/verify-account?token=${token}`
+let buildUrlEmail= (token) =>{
+    let result = `${process.env.HOST_BASE}/api/auth/verify-account?token=${token}` 
     return result;
 }
 
-let createNewUser = async (data) => {
+let createNewUser = async (data, roleName) => {
     return new Promise(async (resolve, reject) => {
         try {
 
@@ -53,16 +53,19 @@ let createNewUser = async (data) => {
                     message: 'email da ton tai'
                 })
             } else {
-                let id = uuidv4();
-                await emailService.sendSimpleEmail({
-                    receiverEmail: data.email,
-                    patientName: data.lastname,
-                    redirectLink: buildUrlEmail(id)
-                });
+                let id='';
+                if(data.status == '0'){
+                    id= uuidv4();
+                    await emailService.sendSimpleEmail({
+                        receiverEmail: data.email,
+                        patientName:data.lastname,
+                        redirectLink:buildUrlEmail(id)
+                    });
+                }
 
                 let hashPasswordFromBcrypt = await hashUserPassword(data.password);
                 let [role, created] = await db.Role.findOrCreate({
-                    where: { name: 'ROLE_PATIENT' }
+                    where: { name: roleName }
                 })
                 const user = await db.User.create(
                     {
@@ -73,7 +76,7 @@ let createNewUser = async (data) => {
                         image: data.image,
                         gender: data.gender === '1' ? true : false,
                         phoneNumber: data.phoneNumber,
-                        age: data.age,
+                        birthday: data.birthday,
                         status: data.status,
                         role_id: role.id,
                         token: id
@@ -92,34 +95,35 @@ let createNewUser = async (data) => {
     })
 }
 
-let verifyUser = (data) => {
-    return new Promise(async (resolve, reject) => {
+let verifyUser = (data)=>{
+    return new Promise( async (resolve,reject)=>{
         try {
-            if (!data.token) {
+            if(!data.token){
                 resolve({
-                    errCode: 1,
-                    errMessage: 'Loi token'
+                    errCode:1,
+                    errMessage:'Loi token'
                 })
-            } else {
-                let user = await db.User.findOne({
-                    where: {
+            } else{
+                let user=await db.User.findOne({
+                    where:{
                         token: data.token,
                         status: 0
                     },
                     raw: false
                 })
 
-                if (user) {
+                if(user){
                     user.status = true
+                    user.token = ''
                     await user.save()
 
                     resolve({
-                        errCode: 0,
+                        errCode:0,
                         errMessage: 'Xac thuc thanh cong'
                     })
                 } else {
                     resolve({
-                        errCode: 2,
+                        errCode:2,
                         errMessage: 'Tai khoan da duoc kich hoat hoac khong ton tai'
                     })
                 }
@@ -129,40 +133,7 @@ let verifyUser = (data) => {
             reject(e)
         }
     })
-}
-
-let updateUserData = (data) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            let user = db.User.findOne({
-                where: {
-                    id: data.id
-                }
-            })
-            if (user) {
-                user.firsname = data.firsname,
-                user.lastname = data.lastname,
-                user.gender = data.gender,
-                user.phoneNumber = data.phoneNumber,
-                user.age = data.age
-
-                await user.save();
-
-                resolve({
-                    errCode: 0,
-                    errMessage: user
-                })
-            } else {
-                resolve({
-                    errCode: 2,
-                    errMessage: 'Khong tim thay tai khoan'
-                })
-            }
-        } catch (e) {
-            reject(e)
-        }
-    })
-}
+} 
 
 let createUser = (data, roleName) => {
     return new Promise(async(resolve, reject) => {
@@ -206,13 +177,12 @@ let createUser = (data, roleName) => {
 
 
 module.exports = {
-    checkUserEmail: checkUserEmail,
-    hashUserPassword: hashUserPassword,
-    buildUrlEmail: buildUrlEmail,
-    createNewUser: createNewUser,
-    verifyUser: verifyUser,
-    updateUserData: updateUserData,
-    createUser: createUser,
+    checkUserEmail:checkUserEmail,
+    hashUserPassword:hashUserPassword,
+    buildUrlEmail:buildUrlEmail,
+    createNewUser:createNewUser,
+    verifyUser:verifyUser,
+    createUser: createUser
 }
 
 
