@@ -177,6 +177,7 @@ let createUser = (data, roleName) => {
 }
 
 
+
 module.exports = {
     checkUserEmail:checkUserEmail,
     hashUserPassword:hashUserPassword,
