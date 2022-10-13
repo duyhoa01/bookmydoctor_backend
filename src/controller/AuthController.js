@@ -9,26 +9,9 @@ const multer = require('multer')
 const path = require('path')
 
 dotenv.config();
-let refreshToken = [];
-
-let authenToken = (req,res,next) => {
-    const token = req.headers['token'];
-    console.log(token);
-    if(!token) res.sendStatus(401); // khong co token
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, data) => {
-        console.log(err, data);       
-        if (err) res.sendStatus(403); // khong co quyen truy cap chuc nang
-        next();
-    });
-};
-
 
 let handleLogin = async (req,res) => {
     const {email,password} = req.body;
-    const data={
-        email,
-        password
-    }
     if(!email || !password) {
         return res.status(500).json({
             errCode: 1,
@@ -38,8 +21,14 @@ let handleLogin = async (req,res) => {
     }
     let userData = await AuthService.handleUserLogin(email,password);
     let accessToken = {};
+    const data = {
+        email: userData.user.email,
+        id: userData.user.id,
+        role_name: userData.user.role.name
+    }
+    // Kiem tra tim duoc user va acc user chua bi khoa
+    if (userData.errCode === 0 && userData.user.status == 1){
 
-    if (userData.errCode === 0 && userData.status === 1){
         accessToken = jwt.sign(data, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1d'});
     }
     return res.status(200).json(
@@ -113,6 +102,5 @@ module.exports = {
     singup:singup,
     verifyUser:verifyUser,
     upload: upload,
-    authenToken: authenToken,
     handleLogin: handleLogin,
 }

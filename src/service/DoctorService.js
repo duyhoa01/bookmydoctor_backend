@@ -1,9 +1,12 @@
 const db = require('../models/index');
 const userService = require('./UserService');
 
-let getAllDoctor = () => {
+let getAllDoctor = (page, limit) => {
     return new Promise(async(resolve, reject) => {
         try {
+            page = page ? page-0 : 0;
+            limit = limit ? limit-0 : 5;
+            let offset = page*limit-0;
             let allDoctor = await db.Doctor.findAll({
                 include: {
                     model: db.User,
@@ -16,6 +19,9 @@ let getAllDoctor = () => {
                         status: 1
                     },
                 },
+                offset: offset,
+                limit: limit,
+
                 raw: true                    
             });
             resolve(allDoctor);
@@ -28,6 +34,7 @@ let getAllDoctor = () => {
 let getDoctorById = (id) => {
     return new Promise(async(resolve, reject) => {
         try {
+            console.log(typeof(id));
             let allDoctor = await db.Doctor.findAll({
                 include: {
                     model: db.User,
@@ -128,7 +135,7 @@ let deleteDoctor = (id) => {
             }
             else {
                 doctorData.errCode = 2;
-                doctorData.errMessage = "khong ton tai doctor co id nay"
+                doctorData.errMessage = "Không tồn tại doctor có id = " + id;
             }
             resolve(doctorData);
         } catch(e){
@@ -136,10 +143,20 @@ let deleteDoctor = (id) => {
         }
     });
 }
+// let getDoctorBySpecialty = (id) => {
+//     return new Promise((resolve, reject) => {
+//         try {
+//             db.
+//         } catch (e) {
+//             reject(e);
+//         }
+//     });
+// }
 module.exports = {
     getAllDoctor: getAllDoctor,
     getDoctorById: getDoctorById,
     createDoctor: createDoctor,
     updateDoctor: updateDoctor,
     deleteDoctor: deleteDoctor,
+    // getDoctorBySpecialty: getDoctorBySpecialty,
 }

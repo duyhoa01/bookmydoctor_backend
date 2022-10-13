@@ -9,10 +9,10 @@ res.status(200).json({status:'ok'})
 })
 
 router.use('/auth',auth)
-module.exports = router;
+// module.exports = router;
 
 router.use('/user',auth)
-module.exports = router;
+// module.exports = router;
 
 router.use('/doctor',doctor)
 module.exports = router;

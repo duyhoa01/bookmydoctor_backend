@@ -1,15 +1,18 @@
 const doctorService = require('../service/DoctorService');
 
 let getAllDoctor = async(req,res) => {
-    let allDoctor = await doctorService.getAllDoctor();
+    let page = req.query.page;
+    let limit = req.query.limit;
+    let allDoctor = await doctorService.getAllDoctor(page, limit);
     return res.status(200).json({allDoctor});
 }
 let getDoctorById = async(req,res) => {
-    let id = req.query.id;
+    let id = parseInt(req.params.id);
     if (id) {
-        let doctor = await doctorService.getDoctorById(req.query.id);
+        let doctor = await doctorService.getDoctorById(id);
+        console.log(doctor);
         // Tim thay doctor co id truyen vao
-        if(!doctor){
+        if(doctor){
             return res.status(200).json({
                 errCode: 0,
                 errMesssage: 'OK',
@@ -40,13 +43,15 @@ let createDoctor = async(req,res) => {
     })
 }
 let updateDoctor = async (req, res) => {
-    if(!req.body.id) {
+    let id = req.params.id;
+    if(!id) {
         return res.status(200).json({
             errCode: "1",
             errMessage: "Thieu tham so id"
         })
     } else {
         let data = req.body;
+        data.id = id;
         let doctorData = await doctorService.updateDoctor(data);
         return res.status(200).json({
             errCode: doctorData.errCode,
@@ -56,13 +61,13 @@ let updateDoctor = async (req, res) => {
 }
 
 let deleteDoctor = async(req, res) => {
-    if(!req.body.id) {
+    let id = req.params.id;
+    if(!id){
         return res.status(200).json({
             errCode: "1",
             errMessage: "Thieu tham so id"
         })
     } else {
-        let id = req.body.id;
         let doctorData = await doctorService.deleteDoctor(id);
         return res.status(200).json({
             errCode: doctorData.errCode,
@@ -70,16 +75,27 @@ let deleteDoctor = async(req, res) => {
         })
     }
 }
-let getDoctorBySpecialty = async(req,res) => {
-    if (!req.query.id){
-        
-    }
-}
+// let getDoctorBySpecialty = async(req,res) => {
+//     if (!req.query.id){
+//         return res.status(200).json({
+//             errCode: "1",
+//             errMessage: "Thieu tham so id"
+//         })
+//     } else {
+//         let id = req.query.id;
+//         let doctorData = await doctorService.getDoctorBySpecialty(id);
+//         return res.status(200).json({
+//             errCode: doctorData.errCode,
+//             errMessage: doctorData.errMessage,
+//             data: doctorData.data
+//         })
+//     }
+// }
 module.exports = {
     getAllDoctor: getAllDoctor,
     getDoctorById: getDoctorById,
     createDoctor: createDoctor,
     updateDoctor: updateDoctor,
     deleteDoctor: deleteDoctor,
-    getDoctorBySpecialty: getDoctorBySpecialty,
+    // getDoctorBySpecialty: getDoctorBySpecialty,
 }

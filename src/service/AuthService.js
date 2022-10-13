@@ -15,8 +15,8 @@ let handleUserLogin = (email, password) => {
                         as : 'role'
                     },
                     where: { email: email},
-                    attributes: ['email', 'password', 'role_id', 'firsname', 'lastname', 'status'],
-                    raw: true
+                    // attributes: ['email', 'password', 'role_id', 'firsname', 'lastname', 'status', 'id'],
+                    raw: false
                 });
                 if (user) {
                     let check = await bcrypt.compareSync(password, user.password);
