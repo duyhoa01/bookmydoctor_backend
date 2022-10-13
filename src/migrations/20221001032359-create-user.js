@@ -37,10 +37,14 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true,
       },
-      age: {
-        type: Sequelize.INTEGER,
+      birthday: {
+        type: Sequelize.DATE,
         allowNull: true,
       },
+      address: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      } ,
       status: {
         type: Sequelize.BOOLEAN,
         allowNull: true,

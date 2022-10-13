@@ -44,22 +44,29 @@ let handleLogin = async (req,res) => {
 
 
 let singup = async (req,res)=>{
-    if (!req.body.email || !req.body.password || !req.body.firsname || !req.body.lastname || !req.body.gender || !req.body.phoneNumber || !req.body.age  ) {
+    if (!req.body.email || !req.body.password || !req.body.firsname || !req.body.lastname || !req.body.gender || !req.body.phoneNumber || !req.body.birthday || !req.body.address  ) {
         return res.status(400).json({
             erroCode:1,
             message:'nhap day du thong tin'
         })
     }
     if (!req.file){
-        return res.status(400).json({
-            erroCode:1,
-            message:'vui long tai len file anh'
-        })
+        if(req.body.gender=== '1'){
+            req.body.image='https://res.cloudinary.com/drotiisfy/image/upload/v1665540808/profiles/male_default_avatar.jng_tgqrqf.jpg'
+        } else {
+            req.body.image='https://res.cloudinary.com/drotiisfy/image/upload/v1665540809/profiles/female_defaule_avatar_ezuxcv.jpg'
+        }
+    } else{
+        req.body.image=req.file.path;
     }
     req.body.status='0';
-    req.body.image=req.file.path;
     let message = await patientService.createPatient(req.body);
-    return res.status(200).json(message);
+    if(message.errCode == 0){
+        return res.status(200).json(message);
+    } else if (message.errCode ==1){
+        return res.status(409).json(message);
+    }
+    
 }
 let verifyUser= async(req,res)=>{
     try{

@@ -1,6 +1,7 @@
 const db = require('../models/index');
 const userService = require('./UserService');
 const bcrypt = require('bcryptjs');
+const salt = bcrypt.genSaltSync(10);
 
 let handleUserLogin = (email, password) => {
     return new Promise(async(resolve, reject) => {
@@ -21,7 +22,7 @@ let handleUserLogin = (email, password) => {
                 if (user) {
                     let check = await bcrypt.compareSync(password, user.password);
                     if(!check) {
-                        console.log(pass);
+                        // console.log(pass);
                         console.log(user.password);
                         userData.errCode = 4;
                         userData.errMessage = "Sai mat khau";
@@ -74,7 +75,51 @@ let checkUserEmail = (email) => {
     })
 }
 
+let hashUserPassword = (password) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let hashPassword = await bcrypt.hashSync(password, salt);
+            resolve(hashPassword);
+        } catch (e) {
+            reject(e);
+        }
+    })
+}
+
+let changePassword = (data) =>{
+    return new Promise(async(resolve, reject) => {
+        try{
+            console.log(data)
+            let userData = await handleUserLogin(data.email,data.password);
+            console.log(userData.errCode)
+            if ( userData.errCode == 0 ){
+                let hashPasswordFromBcrypt = await hashUserPassword(data.newPassword);
+                db.User.update({
+                    password: hashPasswordFromBcrypt
+                },{
+                    where:{
+                        email: data.email
+                    }
+                })
+                resolve({
+                    errCode: 0,
+                    message: 'thay đổi mật khẩu thành công'
+                })
+            } else {
+                resolve({
+                    errCode: 4,
+                    message: 'sai mật khẩu'
+                })
+            }
+            
+        } catch (e){
+            reject(e)
+        }
+    })
+}
+
 module.exports = {
     handleUserLogin: handleUserLogin,
     checkUserEmail: checkUserEmail,
+    changePassword
 }
