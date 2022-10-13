@@ -53,6 +53,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATE,
       allowNull: true,
     } ,
+    address: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    } ,
     status: {
       type:DataTypes.BOOLEAN,
       allowNull:true,

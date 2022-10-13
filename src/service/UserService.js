@@ -50,7 +50,7 @@ let createNewUser = async (data, roleName) => {
             if (checkemail === true) {
                 resolve({
                     errCode: 1,
-                    message: 'email da ton tai'
+                    message: 'email đã tồn tại'
                 })
             } else {
                 let id='';
@@ -77,6 +77,7 @@ let createNewUser = async (data, roleName) => {
                         gender: data.gender === '1' ? true : false,
                         phoneNumber: data.phoneNumber,
                         birthday: data.birthday,
+                        address: data.address,
                         status: data.status,
                         role_id: role.id,
                         token: id
