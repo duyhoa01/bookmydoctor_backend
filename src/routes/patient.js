@@ -9,5 +9,6 @@ router.get('',patientController.getPatients);
 router.get('/:id',patientController.getPatientById);
 router.delete('/:id',patientController.deletePatientById);
 router.put('/:id',fileUploader.single('image'),patientController.updatePatient);
+router.post('/password',patientController.changePassword);
 
 module.exports = router

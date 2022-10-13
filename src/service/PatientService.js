@@ -204,6 +204,7 @@ let updatePatient = (param,data) =>{
     });
 }
 
+
 module.exports= {
     createPatient:createPatient,
     getAllPatient,
