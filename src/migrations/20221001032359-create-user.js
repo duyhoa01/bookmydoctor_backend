@@ -41,6 +41,10 @@ module.exports = {
         type: Sequelize.DATE,
         allowNull: true,
       },
+      address: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      } ,
       status: {
         type: Sequelize.BOOLEAN,
         allowNull: true,

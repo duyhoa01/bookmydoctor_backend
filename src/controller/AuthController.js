@@ -55,7 +55,7 @@ let handleLogin = async (req,res) => {
 
 
 let singup = async (req,res)=>{
-    if (!req.body.email || !req.body.password || !req.body.firsname || !req.body.lastname || !req.body.gender || !req.body.phoneNumber || !req.body.birthday  ) {
+    if (!req.body.email || !req.body.password || !req.body.firsname || !req.body.lastname || !req.body.gender || !req.body.phoneNumber || !req.body.birthday || !req.body.address  ) {
         return res.status(400).json({
             erroCode:1,
             message:'nhap day du thong tin'
@@ -72,7 +72,12 @@ let singup = async (req,res)=>{
     }
     req.body.status='0';
     let message = await patientService.createPatient(req.body);
-    return res.status(200).json(message);
+    if(message.errCode == 0){
+        return res.status(200).json(message);
+    } else if (message.errCode ==1){
+        return res.status(409).json(message);
+    }
+    
 }
 let verifyUser= async(req,res)=>{
     try{

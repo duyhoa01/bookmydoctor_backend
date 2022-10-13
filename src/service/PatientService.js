@@ -1,4 +1,4 @@
-const { Op } = require('sequelize');
+const { Op, where } = require('sequelize');
 const db= require('../models');
 const userService = require('./UserService')
 
@@ -18,7 +18,10 @@ let createPatient = async (data)=>{
                     message: patient
                 });
             } else {
-                resolve(response);
+                resolve({
+                    errCode: 1,
+                    message: response.message
+                });
             }
             
         } catch(e){
@@ -92,7 +95,7 @@ let getPatientById = async (data) =>{
             if(!patients){
                 resolve ({
                     errCode:2,
-                    message:'khong ton tai patient'
+                    message:'mã bệnh nhân không tồn tại'
                 })
             }
 
@@ -120,7 +123,7 @@ let deletePatientById = async (data) =>{
 
             if( !patient){
                     resData.errCode= 2,
-                    resData.message='patient khong ton tai'
+                    resData.message='mã bệnh nhân không tồn tại'
             } else{
                 let user = await db.User.findOne({
                     where:{
@@ -132,7 +135,7 @@ let deletePatientById = async (data) =>{
                 await patient.destroy();
 
                 resData.errCode= 0,
-                resData.message='xoa patient thanh cong'
+                resData.message='xóa bệnh nhân thành công'
             }
             
            resolve(resData)
@@ -147,26 +150,52 @@ let updatePatient = (param,data) =>{
     return new Promise(async(resolve, reject) => {
         let resData = {};
         try{
-            let patient = await db.Patient.findByPk(param.id);
+            let patient = await db.Patient.findByPk(param.id,
+                {   include:
+                        {
+                            model: db.User,
+                            require: true,
+                            as: 'user',
+                            attributes: {
+                                exclude: ['password','token']
+                            },
+                        }
+                });
             if(patient) {
-                let user = await db.User.findByPk(patient.user_id);
-                // Sua thon tin user lien ket voi 
-                user.age = data.age;
-                user.firsname = data.firsname;
-                user.lastname = data.lastname
-                if(data.image !=='0'){
-                    user.image =  data.image;
-                }
-                user.gender = data.gender;
-                user.phoneNumber = data.phoneNumber;
-                await user.save();
+                let user= await db.User.findByPk(patient.user_id)
+                await db.User.update({
+                    birthday: data.birthday,
+                    firsname: data.firsname,
+                    lastname: data.lastname,
+                    gender: data.gender === '1' ? true : false,
+                    image: data.image !== '0' ? data.image : user.image,
+                    gender: data.gender,
+                    address: data.address,
+                    phoneNumber: data.phoneNumber 
+                },
+                {
+                    where:{
+                        id: patient.user_id
+                    }
+                } )
                 await patient.save();
+                let patient1 = await db.Patient.findByPk(param.id,
+                    {   include:
+                            {
+                                model: db.User,
+                                require: true,
+                                as: 'user',
+                                attributes: {
+                                    exclude: ['password','token']
+                                },
+                            }
+                    });
                 resData.errCode = 0;
-                resData.errMessage = "OK"
+                resData.errMessage = patient1
             }
             else {
                 resData.errCode = 2;
-                resData.errMessage = "khong ton tai doctor co id nay"
+                resData.errMessage = "mã bệnh nhân không tồn tại"
             }
             resolve(resData)
         } catch(e){

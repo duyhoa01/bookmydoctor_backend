@@ -1,7 +1,7 @@
 const patientService=require('../service/PatientService');
 
 let addPatient = async (req,res) => {
-    if (!req.body.email || !req.body.password || !req.body.firsname || !req.body.lastname || !req.body.gender || !req.body.phoneNumber || !req.body.birthday  ) {
+    if (!req.body.email || !req.body.password || !req.body.firsname || !req.body.lastname || !req.body.gender || !req.body.phoneNumber || !req.body.birthday || !req.body.address  ) {
         return res.status(400).json({
             erroCode:1,
             message:'nhap day du thong tin'
@@ -19,7 +19,11 @@ let addPatient = async (req,res) => {
     }
     req.body.status='1';
     let message = await patientService.createPatient(req.body);
-    return res.status(200).json(message);
+    if(message.errCode == 0){
+        return res.status(200).json(message);
+    } else if (message.errCode ==1){
+        return res.status(409).json(message);
+    }
 }
 
 let updatePatient = async (req,res) => {
@@ -37,10 +41,18 @@ let updatePatient = async (req,res) => {
     }
 
     let resData = await patientService.updatePatient(req.params,req.body)
-    return res.status(200).json({
-        errCode:resData.errCode,
-        message: resData.errMessage
-    })
+    if(resData.errCode == 2){
+        return res.status(404).json({
+            errCode:resData.errCode,
+            message: resData.errMessage
+        })
+    } else {
+        return res.status(200).json({
+            errCode:resData.errCode,
+            message: resData.errMessage
+        })
+    }
+    
 }
 
 let getPatients = async (req,res) => {
@@ -69,16 +81,22 @@ let getPatients = async (req,res) => {
 }
 
 let getPatientById = async (req,res) => {
-    let patient = await patientService.getPatientById(req.params);
-    return res.status(200).json(patient)
+    let response = await patientService.getPatientById(req.params);
+    if(response.errCode == 2){
+        return res.status(404).json(response)
+    } else{
+        return res.status(200).json(response)
+    }
+   
 }
 
 let deletePatientById = async (req,res) => {
-    let resData= await patientService.deletePatientById(req.params);
-    return res.status(200).json({
-        errCode: resData.errCode,
-        message: resData.message
-    });
+    let response= await patientService.deletePatientById(req.params);
+    if(response.errCode == 2){
+        return res.status(404).json(response)
+    } else{
+        return res.status(200).json(response)
+    }
 }
 
 module.exports = {
