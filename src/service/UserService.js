@@ -176,6 +176,88 @@ let createUser = (data, roleName) => {
     });
 }
 
+let changePassword = (params,data) =>{
+    return new Promise(async(resolve, reject) => {
+        try{
+            let user = await db.User.findByPk(params.id);
+            if(user){
+                let check = await bcrypt.compareSync(data.password, user.password);
+                if(check){
+                    let hashPasswordFromBcrypt = await hashUserPassword(data.newPassword);
+                    db.User.update({
+                        password: hashPasswordFromBcrypt
+                    },{
+                        where:{
+                            id: params.id
+                        }
+                    })
+                    resolve({
+                        errCode: 0,
+                        message: 'thay đổi mật khẩu thành công'
+                    })
+                } else{
+                    resolve({
+                        errCode: 4,
+                        message: 'sai mật khẩu'
+                    })
+                }
+            } else{
+                resolve({
+                    errCode: 2,
+                    message: 'người dùng không tồn tại'
+                })
+            }
+            
+        } catch (e){
+            reject(e)
+        }
+    })
+}
+
+let updateUser = (param,data) =>{
+    return new Promise(async(resolve, reject) => {
+        let resData = {};
+        try{
+            let user = await db.User.findByPk(param.id,
+                {   attributes: {
+                        exclude: ['password','token']
+                    },
+                });
+            if(user) {
+                await db.User.update({
+                    birthday: data.birthday,
+                    firsname: data.firsname,
+                    lastname: data.lastname,
+                    gender: data.gender === '1' ? true : false,
+                    image: data.image !== '0' ? data.image : user.image,
+                    gender: data.gender,
+                    address: data.address,
+                    phoneNumber: data.phoneNumber 
+                },
+                {
+                    where:{
+                        id: user.id
+                    }
+                } )
+                let user1 = await db.User.findByPk(param.id,
+                    {   attributes: {
+                            exclude: ['password','token']
+                        },
+                    });
+                resData.errCode = 0;
+                resData.errMessage = user1
+            }
+            else {
+                resData.errCode = 2;
+                resData.errMessage = "mã bệnh nhân không tồn tại"
+            }
+            resolve(resData)
+        } catch(e){
+            reject(e);
+        }
+    });
+}
+
 
 
 module.exports = {
@@ -184,7 +266,9 @@ module.exports = {
     buildUrlEmail:buildUrlEmail,
     createNewUser:createNewUser,
     verifyUser:verifyUser,
-    createUser: createUser
+    createUser: createUser,
+    changePassword,
+    updateUser
 }
 
 
