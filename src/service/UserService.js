@@ -136,7 +136,7 @@ let verifyUser = (data)=>{
     })
 } 
 
-let createUser = (data, roleName) => {
+let AdminCreateUser = (data, roleName) => {
     return new Promise(async(resolve, reject) => {
         let userData = {};
         try {
@@ -155,19 +155,20 @@ let createUser = (data, roleName) => {
                         image: data.image,
                         gender: data.gender === '1' ? true : false,
                         phoneNumber: data.phoneNumber,
-                        age: data.age,
-                        status: data.status,
+                        birthday: data.birthday,
+                        address: data.address,
+                        status: 1,
                         role_id: role.id,
                     },
                     
                 )
                 userData.errCode = 0;
-                userData.errMessage = "Ok";
+                userData.errMessage = "OK";
                 userData.user = user;
                 
             } else {
                 userData.errCode = 1;
-                userData.errMessage = "email da ton tai";
+                userData.errMessage = "email đã tồn tại";
             }
             resolve(userData);
         } catch (err) {
@@ -184,7 +185,7 @@ module.exports = {
     buildUrlEmail:buildUrlEmail,
     createNewUser:createNewUser,
     verifyUser:verifyUser,
-    createUser: createUser
+    AdminCreateUser: AdminCreateUser
 }
 
 

@@ -1,22 +1,27 @@
 const db = require('../models/index');
 const userService = require('./UserService');
+const { Op, where } = require('sequelize');
 
-let getAllDoctor = (page, limit) => {
+let getAllDoctor = (key, page, limit) => {
     return new Promise(async(resolve, reject) => {
         try {
-            page = page ? page-0 : 0;
-            limit = limit ? limit-0 : 5;
-            let offset = page*limit-0;
-            let allDoctor = await db.Doctor.findAll({
+            page = page - 0;
+            limit = limit - 0;
+            let offset = page*limit;
+            const {count, rows} = await db.Doctor.findAndCountAll({
                 include: {
                     model: db.User,
                     required: true,
                     as : 'user',
                     attributes: {
-                        exclude: ['password']
+                        exclude: ['password','token']
                     },
                     where: {
-                        status: 1
+                        status: 1,
+                        [Op.or]:[
+                            {firsname: db.sequelize.where(db.sequelize.fn('LOWER', db.sequelize.col('firsname')), 'LIKE', '%' + key + '%')},
+                            {lastname: db.sequelize.where(db.sequelize.fn('LOWER', db.sequelize.col('lastname')), 'LIKE', '%' + key + '%')}
+                        ]
                     },
                 },
                 offset: offset,
@@ -24,7 +29,15 @@ let getAllDoctor = (page, limit) => {
 
                 raw: true                    
             });
-            resolve(allDoctor);
+            let resData = {};
+            console.log(rows);
+            resData.doctor = rows;
+            resData.limit=limit;
+            resData.totalPages= Math.ceil(count/limit);
+            resData.totalElements=count
+            resData.page = page;
+            console.log(resData);
+            resolve(resData);
         } catch (err) {
             reject(err);
         }
@@ -35,13 +48,13 @@ let getDoctorById = (id) => {
     return new Promise(async(resolve, reject) => {
         try {
             console.log(typeof(id));
-            let allDoctor = await db.Doctor.findAll({
+            let doctor = await db.Doctor.findAll({
                 include: {
                     model: db.User,
                     required: true,
                     as : 'user',
                     attributes: {
-                        exclude: ['password']
+                        exclude: ['password', 'token']
                     },
                 },
                 where: {
@@ -49,7 +62,7 @@ let getDoctorById = (id) => {
                 },
                 raw: true                   
             });
-            resolve(allDoctor);
+            resolve(doctor);
         } catch (err) {
             reject(err);
         }
@@ -59,11 +72,10 @@ let createDoctor = (data) => {
     return new Promise(async(resolve, reject) => {
         let doctorData = {};
         try{
-            let userData = await userService.createUser(data,"ROLE_DOCTOR");
+            let userData = await userService.AdminCreateUser(data,"ROLE_DOCTOR");
             if (userData.errCode === 0) {
                 const doctor = await db.Doctor.create(
                     {
-                        name: data.lastname + " " + data.firsname,
                         description: data.description,
                         rate: data.rate,
                         user_id: userData.user.id,
@@ -95,9 +107,8 @@ let updateDoctor = (data) => {
                 let user = await db.User.findByPk(doctor.user_id);
                 // Sua thon tin user lien ket voi doctor
                 user.age = data.age;
-                user.email = data.email;
-                user.image = data.image;
-                user.gender = data.gender;
+                user.gender = data.gender == '1' ? true : false,
+                user.image = data.image !== '0' ? data.image : user.image,
                 user.phoneNumber = data.phoneNumber;
                 user.save();
                 // Sua thong tin doctor
@@ -107,12 +118,23 @@ let updateDoctor = (data) => {
                 doctor.clinic_id = data.clinic_id;
                 doctor.specialty_id = data.specialty_id;
                 await doctor.save();
+                let doctorEdit = await db.Doctor.findByPk(data.id,
+                    {   include:
+                            {
+                                model: db.User,
+                                require: true,
+                                as: 'user',
+                                attributes: {
+                                    exclude: ['password','token']
+                                },
+                            }
+                    });
                 doctorData.errCode = 0;
-                doctorData.errMessage = "OK"
+                doctorData.errMessage = doctorEdit;
             }
             else {
                 doctorData.errCode = 2;
-                doctorData.errMessage = "khong ton tai doctor co id nay"
+                doctorData.errMessage = "Không tồn tại doctor có id này";
             }
             resolve(doctorData);
         } catch(e){
@@ -135,7 +157,7 @@ let deleteDoctor = (id) => {
             }
             else {
                 doctorData.errCode = 2;
-                doctorData.errMessage = "Không tồn tại doctor có id = " + id;
+                doctorData.errMessage = "Không tồn tại doctor có id này";
             }
             resolve(doctorData);
         } catch(e){

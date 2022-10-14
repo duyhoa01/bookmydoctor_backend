@@ -15,7 +15,7 @@ let handleLogin = async (req,res) => {
     if(!email || !password) {
         return res.status(500).json({
             errCode: 1,
-            message: 'Missing username or password'
+            message: 'Nhập thiếu email hoặc mật khẩu'
 
         })
     }
@@ -30,15 +30,20 @@ let handleLogin = async (req,res) => {
     if (userData.errCode === 0 && userData.user.status == 1){
 
         accessToken = jwt.sign(data, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1d'});
+        return res.status(200).json(
+            {
+                errCode: userData.errCode,
+                message: userData.errMessage,
+                token: accessToken,
+                user: userData.user
+            }
+        )
     }
-    return res.status(200).json(
-        {
-            errCode: userData.errCode,
-            message: userData.errMessage,
-            token: accessToken,
-            user: userData.user ? userData.user : {}
-        }
-    )
+    return res.status(403).json({
+        errCode: userData.errCode,
+        message: userData.errMessage,
+    });
+
 };
 
 
