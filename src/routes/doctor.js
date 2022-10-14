@@ -1,10 +1,15 @@
 const router = require('express').Router();
 const doctorController = require('../controller/DoctorController');
-router.get('/get-all-doctor', doctorController.getAllDoctor);
-router.get('', doctorController.getAllDoctor);
-router.get('/get-doctor', doctorController.getDoctorById);
-router.post('/create-doctor', doctorController.createDoctor);
-router.put('/update-doctor', doctorController.updateDoctor);
-router.delete('/delete-doctor', doctorController.deleteDoctor);
-router.get('/get-doctor-by-specialty', doctorController.getDoctorBySpecialty);
+const authJwt = require('../middlewares/authJwt');
+const fileUploader = require('../config/cloudinary.config');
+router.get('/', doctorController.getAllDoctor);
+router.get('/:id', doctorController.getDoctorById);
+router.post('/', authJwt.authenToken, authJwt.isAdmin, fileUploader.single('image'), doctorController.createDoctor);
+router.put('/:id', authJwt.authenToken, authJwt.isAdminOrYourself, fileUploader.single('image'), doctorController.updateDoctor);
+router.delete('/:id', authJwt.authenToken, authJwt.isAdmin, doctorController.deleteDoctor);
+
+// router.post('/', doctorController.createDoctor);
+// router.post('/', doctorController.createDoctor);
+// router.put('/:id', doctorController.updateDoctor);
+// router.delete('/:id', doctorController.deleteDoctor);
 module.exports = router;

@@ -19,10 +19,6 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   Doctor.init({
-    name: {
-      type:DataTypes.STRING,
-      allowNull:false,
-    },
     description: {
       type:DataTypes.STRING,
       allowNull:true,
