@@ -44,6 +44,7 @@ let updateInforUser = async (req,res) =>{
     }
 }
 
+
 module.exports ={
     changePassword,
     updateInforUser

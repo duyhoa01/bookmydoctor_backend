@@ -244,6 +244,11 @@ let updateUser = (param,data) =>{
                     {   attributes: {
                             exclude: ['password','token']
                         },
+                        include: {
+                            model: db.Role,
+                            required: true,
+                            as : 'role'
+                        },
                     });
                 resData.errCode = 0;
                 resData.errMessage = user1
