@@ -1,7 +1,8 @@
 const bcrypt = require('bcryptjs');
 const db = require('../models');
 const emailService = require('./emailService')
-const { v4: uuidv4 } = require('uuid')
+const { v4: uuidv4 } = require('uuid');
+const { where } = require('sequelize');
 
 const salt = bcrypt.genSaltSync(10);
 
@@ -244,6 +245,11 @@ let updateUser = (param,data) =>{
                     {   attributes: {
                             exclude: ['password','token']
                         },
+                        include: {
+                            model: db.Role,
+                            required: true,
+                            as : 'role'
+                        },
                     });
                 resData.errCode = 0;
                 resData.errMessage = user1
@@ -259,6 +265,44 @@ let updateUser = (param,data) =>{
     });
 }
 
+let ResetPassword = (data) =>{
+    return new Promise( async (resolve, reject)=>{
+        try{
+            let user = await db.User.findByPk(data.id)
+            if(user){
+                let newPaw= Math.floor(Math.random() * 100000000)+'';
+                let hashPasswordFromBcrypt = await hashUserPassword(newPaw);
+                user.password = hashPasswordFromBcrypt;
+                await db.User.update({
+                    password: hashPasswordFromBcrypt
+                },
+                {
+                    where:{
+                        id: data.id
+                    }
+                })
+                await emailService.sendEmailToResetPw({
+                    receiverEmail: user.email,
+                    patientName:user.lastname,
+                    newPassword:newPaw
+                });
+                resolve({
+                    errCode:0,
+                    message:'truy cập email để xem password'
+                })
+            } else{
+                resolve({
+                    errCode:2,
+                    message:'id người dùng không tồn tại'
+                })
+            }
+        } catch( e){
+            reject(e)
+        }
+       
+    })
+}
+
 
 
 module.exports = {
@@ -269,7 +313,8 @@ module.exports = {
     verifyUser:verifyUser,
     AdminCreateUser: AdminCreateUser,
     changePassword,
-    updateUser
+    updateUser,
+    ResetPassword
 }
 
 
