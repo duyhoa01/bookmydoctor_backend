@@ -68,7 +68,7 @@ let handleUserLogin = (email, password) => {
 
             } else {
                 userData.errCode = 2;
-                userData.errMessage = "Email đã được sử dụng"
+                userData.errMessage = "Email không tồn tại"
             }
             
             resolve(userData);

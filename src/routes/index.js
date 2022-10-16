@@ -7,6 +7,7 @@ const doctor = require('./doctor')
 const user = require('./user')
 const clinic = require('./clinic')
 const specialty = require('./specialty')
+const hospital = require('./hospital')
 
 
 router.get("/status",(req,res)=>{
@@ -26,5 +27,6 @@ router.use('/users',user)
 
 router.use('/clinic', clinic)
 router.use('/specialty',specialty)
+router.use('/hospital', hospital)
 
 module.exports = router;
