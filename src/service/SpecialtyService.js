@@ -1,5 +1,6 @@
 const db= require('../models');
 const { Op, where } = require('sequelize');
+const { QueryTypes } = require('sequelize');
 
 let addSpecialty = async (data) =>{
     return new Promise( async (resolve, reject)=>{
@@ -24,49 +25,37 @@ let addSpecialty = async (data) =>{
 
 let getListSpecialty = async (key) =>{
     return new Promise(async(resolve, reject) => {
+        
         try {
-            //db.sequelize.query("SET sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';");
-            let rows = await db.Specialty.findAll({
-                order: [
-                    ['id', 'DESC']
-                ],
-                // include: {
-                //     model: db.Doctor,
-                //     require: true,
-                //     as: 'doctors',
-                //     attributes: [
-                //        'id'
-                //     ],
-                // },
-                // where:{
-                //     name: db.sequelize.where(db.sequelize.fn('LOWER', db.sequelize.col('name')), 'LIKE', '%' + key + '%')
-                // },
-                // attributes: {
-                //     include: [[db.sequelize.fn('COUNT', db.sequelize.col('doctors.id')), 'sum_doctor']]
-                // },
-                // group: ['Specialty.id'],
-                raw:true
-            });
-            // let rows = await db.Doctor.findAll({
-            //     include:{
-            //         model: db.Specialty,
+            let roww=await db.sequelize.query("SET sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'");
+            // let row=await db.sequelize.query("SELECT @@sql_mode;");
+            let spes = await db.sequelize.query("SELECT DISTINCT s.id,s.name,SUM(d.id) as sum_doctor FROM Specialties as s LEFT JOIN Doctors as d ON s.id=d.specialty_id GROUP BY s.id;",{ type: QueryTypes.SELECT })
+            console.log(spes)
+            // let rows = await db.Specialty.findAll({
+            //     order: [
+            //         ['id', 'DESC']
+            //     ],
+            //     include: {
+            //         model: db.Doctor,
             //         require: true,
-            //         as: 'specialty',
+            //         as: 'doctors',
             //         attributes: [
-            //            'id',
-            //            'name',
-            //            'description'
+            //            'id'
             //         ],
             //     },
-            //     attributes: {
-            //         include: [[db.sequelize.fn('COUNT', db.sequelize.col('id')), 'sum_doctor']]
+            //     where:{
+            //         name: db.sequelize.where(db.sequelize.fn('LOWER', db.sequelize.col('name')), 'LIKE', '%' + key + '%')
             //     },
-            //     group: ['id'],
-            // })
+            //     attributes: {
+            //         include: [[db.sequelize.fn('COUNT', db.sequelize.col('doctors.id')), 'sum_doctor']]
+            //     },
+            //     group: ['Specialty.id'],
+            //     raw:true
+            // });
 
             resolve({
                 errCode:0,
-                message: rows
+                message: spes
             })
 
         } catch (err) {

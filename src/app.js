@@ -23,4 +23,7 @@ app.use('/Images', express.static('./Images'))
 app.listen(port, async () => {
   console.log(`Example app listening on port ${port}`)
   await db.sequelize.authenticate()
+  let roww=await db.sequelize.query("SET sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'");
+  // let row=await db.sequelize.query("SELECT @@sql_mode;");
+  //console.log(row)
 })
