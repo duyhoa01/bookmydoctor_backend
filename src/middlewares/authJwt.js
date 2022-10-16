@@ -21,7 +21,7 @@ let isAdmin = (req, res, next) => {
     next();
     return;
   }
-  return res.status(403).send({ message: "Cần quyền Admin" });
+  return res.status(403).send({ message: "Require Admin Role!" });
 }
 
 let isCollaborators = (req, res, next) => {
@@ -79,7 +79,7 @@ let isAdminOrYourself = async(req, res, next) => {
     next();
     return;
   }
-  return res.status(403).send({ message: "Cần quyền Admin!" });
+  return res.status(403).send({ message: "Require Admin Role!!" });
 }
 
 let isAdminOrUser =async (req,res,next) =>{
@@ -95,7 +95,7 @@ let isAdminOrUser =async (req,res,next) =>{
     next();
     return;
   }
-  return res.status(403).send({ message: "Cần quyền Admin!" });
+  return res.status(403).send({ message: "Require Admin Role!!" });
 }
 
 module.exports = {
