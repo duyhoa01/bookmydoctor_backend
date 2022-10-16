@@ -18,7 +18,7 @@ let authenToken = (req, res, next) => {
 };
 
 let isAdmin = (req, res, next) => {
-  if (req.role_name === 'ROLE_DOCTOR') {
+  if (req.role_name === 'ROLE_ADMIN') {
     next();
     return;
   }

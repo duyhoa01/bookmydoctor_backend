@@ -28,6 +28,30 @@ let sendSimpleEmail = async(dataSend) => {
     });
 }
 
+let sendEmailToResetPw = async(dataSend) => {
+    let transporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false, 
+        auth: {
+            user: process.env.EMAIL_NAME, 
+            pass: process.env.EMAIL_APP_PASSWORD, 
+        },
+    });
+
+    
+    let info = await transporter.sendMail({
+        from: '"BookMyDoctor 👻" <bookmydoctor22@gmail.com>', 
+        to: dataSend.receiverEmail, 
+        subject: "Dat lai mat khau ✔", 
+        html: `
+        <h3>Xin chao ${dataSend.patientName}!</h3>
+        <p>mat khau moi cua ban la ${dataSend.newPassword}</p>
+        `, 
+    });
+}
+
 module.exports = {
-    sendSimpleEmail
+    sendSimpleEmail,
+    sendEmailToResetPw
 }
