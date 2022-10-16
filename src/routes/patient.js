@@ -6,9 +6,9 @@ const fileUploader = require('../config/cloudinary.config');
 const authJwt = require('../middlewares/authJwt')
 
 router.post('/',authJwt.authenToken, authJwt.isAdmin,fileUploader.single('image'),patientController.addPatient);
-router.get('',patientController.getPatients);
-router.get('/:id',patientController.getPatientById);
-router.delete('/:id',patientController.deletePatientById);
-router.put('/:id',fileUploader.single('image'),patientController.updatePatient);
+router.get('',authJwt.authenToken,patientController.getPatients);
+router.get('/:id',authJwt.authenToken,patientController.getPatientById);
+router.delete('/:id',authJwt.authenToken, authJwt.isAdmin,patientController.deletePatientById);
+router.put('/:id',authJwt.authenToken, authJwt.isAdminOrYourself,fileUploader.single('image'),patientController.updatePatient);
 
 module.exports = router

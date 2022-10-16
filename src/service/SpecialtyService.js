@@ -25,27 +25,44 @@ let addSpecialty = async (data) =>{
 let getListSpecialty = async (key) =>{
     return new Promise(async(resolve, reject) => {
         try {
+            //db.sequelize.query("SET sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';");
             let rows = await db.Specialty.findAll({
                 order: [
-                    ['sum_doctor', 'DESC']
+                    ['id', 'DESC']
                 ],
-                include: {
-                    model: db.Doctor,
-                    require: true,
-                    as: 'doctors',
-                    attributes: [
-                       'id'
-                    ],
-                },
-                where:{
-                    name: db.sequelize.where(db.sequelize.fn('LOWER', db.sequelize.col('name')), 'LIKE', '%' + key + '%')
-                },
-                attributes: {
-                    include: [[db.sequelize.fn('COUNT', db.sequelize.col('doctors.id')), 'sum_doctor']]
-                },
-                group: ['Specialty.id'],
+                // include: {
+                //     model: db.Doctor,
+                //     require: true,
+                //     as: 'doctors',
+                //     attributes: [
+                //        'id'
+                //     ],
+                // },
+                // where:{
+                //     name: db.sequelize.where(db.sequelize.fn('LOWER', db.sequelize.col('name')), 'LIKE', '%' + key + '%')
+                // },
+                // attributes: {
+                //     include: [[db.sequelize.fn('COUNT', db.sequelize.col('doctors.id')), 'sum_doctor']]
+                // },
+                // group: ['Specialty.id'],
                 raw:true
             });
+            // let rows = await db.Doctor.findAll({
+            //     include:{
+            //         model: db.Specialty,
+            //         require: true,
+            //         as: 'specialty',
+            //         attributes: [
+            //            'id',
+            //            'name',
+            //            'description'
+            //         ],
+            //     },
+            //     attributes: {
+            //         include: [[db.sequelize.fn('COUNT', db.sequelize.col('id')), 'sum_doctor']]
+            //     },
+            //     group: ['id'],
+            // })
 
             resolve({
                 errCode:0,
