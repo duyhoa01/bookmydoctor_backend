@@ -21,14 +21,14 @@ let handleLogin = async (req,res) => {
     }
     let userData = await AuthService.handleUserLogin(email,password);
     let accessToken = {};
-    const data = {
-        email: userData.user.email,
-        id: userData.user.id,
-        role_name: userData.user.role.name
-    }
+
     // Kiem tra tim duoc user va acc user chua bi khoa
     if (userData.errCode === 0 && userData.user.status == 1){
-
+        const data = {
+            email: userData.user.email,
+            id: userData.user.id,
+            role_name: userData.user.role.name
+        }
         accessToken = jwt.sign(data, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1d'});
         return res.status(200).json(
             {

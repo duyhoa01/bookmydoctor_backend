@@ -5,6 +5,7 @@ const router=express.Router()
 const patient = require('./patient')
 const doctor = require('./doctor')
 const user = require('./user')
+const clinic = require('./clinic')
 
 
 router.get("/status",(req,res)=>{
@@ -21,5 +22,7 @@ router.use('/patients',patient)
 router.use('/doctor',doctor)
 
 router.use('/users',user)
+
+router.use('/clinic', clinic)
 
 module.exports = router;

@@ -7,9 +7,7 @@ router.get('/:id', doctorController.getDoctorById);
 router.post('/', authJwt.authenToken, authJwt.isAdmin, fileUploader.single('image'), doctorController.createDoctor);
 router.put('/:id', authJwt.authenToken, authJwt.isAdminOrYourself, fileUploader.single('image'), doctorController.updateDoctor);
 router.delete('/:id', authJwt.authenToken, authJwt.isAdmin, doctorController.deleteDoctor);
+router.get('/specialty/:id', doctorController.getDoctorBySpecialty);
+router.get('/hospital/:id', doctorController.getDoctorByHospital); 
 
-// router.post('/', doctorController.createDoctor);
-// router.post('/', doctorController.createDoctor);
-// router.put('/:id', doctorController.updateDoctor);
-// router.delete('/:id', doctorController.deleteDoctor);
 module.exports = router;

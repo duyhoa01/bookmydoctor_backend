@@ -3,40 +3,37 @@ const userService = require('./UserService');
 const { Op, where } = require('sequelize');
 
 let getAllDoctor = (key, page, limit) => {
-    return new Promise(async(resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         try {
             page = page - 0;
             limit = limit - 0;
-            let offset = page*limit;
-            const {count, rows} = await db.Doctor.findAndCountAll({
+            let offset = page * limit;
+            const { count, rows } = await db.Doctor.findAndCountAll({
                 include: {
                     model: db.User,
                     required: true,
-                    as : 'user',
+                    as: 'user',
                     attributes: {
-                        exclude: ['password','token']
+                        exclude: ['password', 'token']
                     },
                     where: {
                         status: 1,
-                        [Op.or]:[
-                            {firsname: db.sequelize.where(db.sequelize.fn('LOWER', db.sequelize.col('firsname')), 'LIKE', '%' + key + '%')},
-                            {lastname: db.sequelize.where(db.sequelize.fn('LOWER', db.sequelize.col('lastname')), 'LIKE', '%' + key + '%')}
+                        [Op.or]: [
+                            { name: db.sequelize.where(db.sequelize.fn('concat', db.sequelize.col('firsname'), " ", db.sequelize.col('lastname')), 'LIKE', '%' + key + '%') },
                         ]
                     },
                 },
                 offset: offset,
                 limit: limit,
 
-                raw: true                    
+                raw: true
             });
             let resData = {};
-            console.log(rows);
             resData.doctor = rows;
-            resData.limit=limit;
-            resData.totalPages= Math.ceil(count/limit);
-            resData.totalElements=count
+            resData.limit = limit;
+            resData.totalPages = Math.ceil(count / limit);
+            resData.totalElements = count
             resData.page = page;
-            console.log(resData);
             resolve(resData);
         } catch (err) {
             reject(err);
@@ -45,14 +42,13 @@ let getAllDoctor = (key, page, limit) => {
 }
 
 let getDoctorById = (id) => {
-    return new Promise(async(resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         try {
-            console.log(typeof(id));
-            let doctor = await db.Doctor.findAll({
+            let doctor = await db.Doctor.findOne({
                 include: {
                     model: db.User,
                     required: true,
-                    as : 'user',
+                    as: 'user',
                     attributes: {
                         exclude: ['password', 'token']
                     },
@@ -60,7 +56,7 @@ let getDoctorById = (id) => {
                 where: {
                     id: id,
                 },
-                raw: true                   
+                raw: true
             });
             resolve(doctor);
         } catch (err) {
@@ -69,10 +65,10 @@ let getDoctorById = (id) => {
     });
 }
 let createDoctor = (data) => {
-    return new Promise(async(resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         let doctorData = {};
-        try{
-            let userData = await userService.AdminCreateUser(data,"ROLE_DOCTOR");
+        try {
+            let userData = await userService.AdminCreateUser(data, "ROLE_DOCTOR");
             if (userData.errCode === 0) {
                 const doctor = await db.Doctor.create(
                     {
@@ -86,48 +82,59 @@ let createDoctor = (data) => {
                 )
                 doctorData.errCode = 0;
                 doctorData.errMessage = "OK";
-                doctorData.user = userData.user;
-                doctorData.doctor = doctor;
+                // doctorData.user = userData.user;
+                let doctor1 = await db.Doctor.findOne({
+                    include: {
+                        model: db.User,
+                        required: true,
+                        as: 'user',
+                        attributes: {
+                            exclude: ['password', 'token']
+                        },
+                    },
+                    where: {
+                        id: doctor.id,
+                    },
+                    raw: true
+                });
+                doctorData.doctor = doctor1;
             } else {
                 doctorData.errCode = userData.errCode;
                 doctorData.errMessage = userData.errMessage;
             }
             resolve(doctorData);
-        } catch(err){
+        } catch (err) {
             reject(err);
         }
     });
 }
 let updateDoctor = (data) => {
-    return new Promise(async(resolve, reject) => {
-        try{
-            let doctorData ={};
+    return new Promise(async (resolve, reject) => {
+        try {
+            let doctorData = {};
             let doctor = await db.Doctor.findByPk(data.id);
-            if(doctor) {
-                let user = await db.User.findByPk(doctor.user_id);
+            if (doctor) {
+                let param = {};
+                param.id = doctor.user_id;
                 // Sua thon tin user lien ket voi doctor
-                user.age = data.age;
-                user.gender = data.gender == '1' ? true : false,
-                user.image = data.image !== '0' ? data.image : user.image,
-                user.phoneNumber = data.phoneNumber;
-                user.save();
+                await userService.updateUser(param,data);
                 // Sua thong tin doctor
-                doctor.name = data.name;
                 doctor.description = data.description;
                 doctor.hospital_id = data.hospital_id;
                 doctor.clinic_id = data.clinic_id;
                 doctor.specialty_id = data.specialty_id;
                 await doctor.save();
                 let doctorEdit = await db.Doctor.findByPk(data.id,
-                    {   include:
-                            {
-                                model: db.User,
-                                require: true,
-                                as: 'user',
-                                attributes: {
-                                    exclude: ['password','token']
-                                },
-                            }
+                    {
+                        include:
+                        {
+                            model: db.User,
+                            require: true,
+                            as: 'user',
+                            attributes: {
+                                exclude: ['password', 'token']
+                            },
+                        }
                     });
                 doctorData.errCode = 0;
                 doctorData.errMessage = doctorEdit;
@@ -137,17 +144,17 @@ let updateDoctor = (data) => {
                 doctorData.errMessage = "Không tồn tại doctor có id này";
             }
             resolve(doctorData);
-        } catch(e){
+        } catch (e) {
             reject(e);
         }
     });
 }
 let deleteDoctor = (id) => {
-    return new Promise(async(resolve, reject) => {
-        try{
-            let doctorData ={};
+    return new Promise(async (resolve, reject) => {
+        try {
+            let doctorData = {};
             let doctor = await db.Doctor.findByPk(id);
-            if(doctor) {
+            if (doctor) {
                 let user = await db.User.findByPk(doctor.user_id);
                 user.status = 0; // Chuyen trang thai tai khoan user bi khoa
                 await user.save();
@@ -160,25 +167,93 @@ let deleteDoctor = (id) => {
                 doctorData.errMessage = "Không tồn tại doctor có id này";
             }
             resolve(doctorData);
-        } catch(e){
+        } catch (e) {
             reject(e);
         }
     });
 }
-// let getDoctorBySpecialty = (id) => {
-//     return new Promise((resolve, reject) => {
-//         try {
-//             db.
-//         } catch (e) {
-//             reject(e);
-//         }
-//     });
-// }
+let getDoctorBySpecialty = (id, key, page, limit) => {
+    return new Promise(async(resolve, reject) => {
+        try {
+            page = page - 0;
+            limit = limit - 0;
+            let offset = page * limit;
+            const { count, rows } = await db.Doctor.findAndCountAll({
+                include: {
+                    model: db.User,
+                    required: true,
+                    as: 'user',
+                    attributes: {
+                        exclude: ['password', 'token']
+                    },
+                    where: {
+                        status: 1,
+                        [Op.or]: [
+                            { name: db.sequelize.where(db.sequelize.fn('concat', db.sequelize.col('firsname'), " ", db.sequelize.col('lastname')), 'LIKE', '%' + key + '%') },
+                        ]
+                    },
+                },
+                offset: offset,
+                limit: limit,
+                where: { specialty_id: id },
+                raw: true
+            });
+            let resData = {};
+            resData.doctor = rows;
+            resData.limit=limit;
+            resData.totalPages= Math.ceil(count/limit);
+            resData.totalElements=count
+            resData.page = page;
+            resolve(resData);
+        } catch (e) {
+            reject(e);
+        }
+    });
+}
+let getDoctorByHospital = (id, key, page, limit) => {
+    return new Promise(async(resolve, reject) => {
+        try {
+            page = page - 0;
+            limit = limit - 0;
+            let offset = page * limit;
+            const { count, rows } = await db.Doctor.findAndCountAll({
+                include: {
+                    model: db.User,
+                    required: true,
+                    as: 'user',
+                    attributes: {
+                        exclude: ['password', 'token']
+                    },
+                    where: {
+                        status: 1,
+                        [Op.or]: [
+                            { name: db.sequelize.where(db.sequelize.fn('concat', db.sequelize.col('firsname'), " ", db.sequelize.col('lastname')), 'LIKE', '%' + key + '%') },
+                        ]
+                    },
+                },
+                offset: offset,
+                limit: limit,
+                where: { hospital_id: id },
+                raw: true
+            });
+            let resData = {};
+            resData.doctor = rows;
+            resData.limit=limit;
+            resData.totalPages= Math.ceil(count/limit);
+            resData.totalElements=count
+            resData.page = page;
+            resolve(resData);
+        } catch (e) {
+            reject(e);
+        }
+    });
+}
 module.exports = {
     getAllDoctor: getAllDoctor,
     getDoctorById: getDoctorById,
     createDoctor: createDoctor,
     updateDoctor: updateDoctor,
     deleteDoctor: deleteDoctor,
-    // getDoctorBySpecialty: getDoctorBySpecialty,
+    getDoctorBySpecialty: getDoctorBySpecialty,
+    getDoctorByHospital: getDoctorByHospital,
 }

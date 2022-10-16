@@ -27,12 +27,12 @@ let handleUserLogin = (email, password) => {
                     if(!check) {
                         console.log(user.password);
                         userData.errCode = 4;
-                        userData.errMessage = "Sai mat khau";
+                        userData.errMessage = "Sai mật khẩu";
                     }
                     else {
                         if(user.status == 0){
                             userData.errCode = 5;
-                            userData.errMessage = "Tai khoan chua xac thuc hoac da bi khoa";
+                            userData.errMessage = "Tài khoản chưa xác thực hoặc đã bị khóa";
                         }
                         else {
 
@@ -63,12 +63,12 @@ let handleUserLogin = (email, password) => {
 
                 } else {
                     userData.errCode = 3;
-                    userData.errMessage = "Tai khoan da bi khoa";
+                    userData.errMessage = "Tài khoản đã bị khóa";
                 }
 
             } else {
                 userData.errCode = 2;
-                userData.errMessage = "Ten nguoi dung khong ton tai"
+                userData.errMessage = "Email đã được sử dụng"
             }
             
             resolve(userData);
