@@ -82,6 +82,22 @@ let isAdminOrYourself = async(req, res, next) => {
   return res.status(403).send({ message: "Cần quyền Admin!" });
 }
 
+let isAdminOrUser =async (req,res,next) =>{
+  switch (req.role_name) {
+    case 'ROLE_ADMIN': {
+      next();
+      return;
+    }
+  }
+ 
+  console.log(req.userID, req.params.id,req.role_name)
+  if (req.userID == req.params.id) {
+    next();
+    return;
+  }
+  return res.status(403).send({ message: "Cần quyền Admin!" });
+}
+
 module.exports = {
   authenToken: authenToken,
   isAdmin: isAdmin,
@@ -89,4 +105,5 @@ module.exports = {
   isDoctor: isDoctor,
   isPatient: isPatient,
   isAdminOrYourself: isAdminOrYourself,
+  isAdminOrUser
 }
