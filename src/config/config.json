@@ -1,12 +1,19 @@
 {
   "development": {
-    "username": "root",
-    "password": null,
+    "username": "ijx1vrcbhcb2draxumy6",
+    "password": "pscale_pw_reMLjc2OfEn8rGmGMXVcgsZgtsODq9nl07BwvcFrk7Z",
     "database": "bookmydoctor",
-    "host": "127.0.0.1",
+    "host": "us-east.connect.psdb.cloud",
     "dialect": "mysql",
-    "timezone": "+07:00"
+    "timezone": "+07:00",
+    "dialectOptions":{
+      "ssl":{
+        "require":true,
+        "rejectUnauthorized": false
+      }
+    }
     },
+    
   "test": {
     "username": "root",
     "password": null,
