@@ -44,8 +44,17 @@ let updateInforUser = async (req,res) =>{
     }
 }
 
+let ResetPassword = async (req,res) =>{
+    let resData = await userService.ResetPassword(req.params)
+    if(resData.errCode == 0){
+        return res.status(200).json(resData)
+    } else{
+        return res.status(400).json(resData)
+    }
+}
 
 module.exports ={
     changePassword,
-    updateInforUser
+    updateInforUser,
+    ResetPassword
 }

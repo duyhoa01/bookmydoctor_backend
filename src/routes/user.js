@@ -8,4 +8,7 @@ router.post('/password/:id',userController.changePassword);
 
 router.put('/:id',fileUploader.single('image'),userController.updateInforUser);
 
+router.get('/resetpw/:id',userController.ResetPassword);
+
+
 module.exports = router
