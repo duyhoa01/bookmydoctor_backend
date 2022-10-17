@@ -11,5 +11,9 @@ router.put('/:id',authJwt.authenToken, authJwt.isAdminOrUser,fileUploader.single
 
 router.post('/resetpw',userController.ResetPassword);
 
+router.get('/enable/:id',authJwt.authenToken, authJwt.isAdmin,userController.enableUser);
+
+router.get('/disable/:id',authJwt.authenToken, authJwt.isAdmin,userController.disableUser);
+
 
 module.exports = router

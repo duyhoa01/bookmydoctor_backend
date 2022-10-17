@@ -307,6 +307,70 @@ let ResetPassword = (data) =>{
     })
 }
 
+let enableUser = async (data) =>{
+    return new Promise( async (resolve, reject)=>{
+        try{
+            let user = await db.User.findByPk(data.id)
+            if(user){
+                if( user.status == 0 ){
+                    user.status = 1;
+                    await user.save();
+
+                    resolve({
+                        errCode:0,
+                        message:'mở khóa thành công người dùng'
+                    })
+                } else {
+                    resolve({
+                        errCode:4,
+                        message:'người dùng này đã được mở khóa trước đó'
+                    })
+                }
+            } else{
+                resolve({
+                    errCode:2,
+                    message:'người dùng không tồn tại'
+                })
+            }
+        } catch( e){
+            reject(e)
+        }
+       
+    })
+}
+
+let disableUser = async (data) => {
+    return new Promise( async (resolve, reject)=>{
+        try{
+            let user = await db.User.findByPk(data.id)
+            if(user){
+                if( user.status == 1 ){
+                    user.status = 0;
+                    await user.save();
+
+                    resolve({
+                        errCode:0,
+                        message:'khóa thành công người dùng'
+                    })
+                } else {
+                    resolve({
+                        errCode:4,
+                        message:'người dùng này đã được khóa trước đó'
+                    })
+                }
+            } else{
+                resolve({
+                    errCode:2,
+                    message:'người dùng không tồn tại'
+                })
+            }
+        } catch( e){
+            reject(e)
+        }
+       
+    })
+}
+
 
 
 module.exports = {
@@ -318,7 +382,9 @@ module.exports = {
     AdminCreateUser: AdminCreateUser,
     changePassword,
     updateUser,
-    ResetPassword
+    ResetPassword,
+    enableUser,
+    disableUser
 }
 
 
