@@ -45,7 +45,13 @@ let updateInforUser = async (req,res) =>{
 }
 
 let ResetPassword = async (req,res) =>{
-    let resData = await userService.ResetPassword(req.params)
+    if( !req.body.email ){
+        return res.status(400).json({
+            erroCode:1,
+            message:'nhap day du thong tin'
+        }) 
+    }
+    let resData = await userService.ResetPassword(req.body)
     if(resData.errCode == 0){
         return res.status(200).json(resData)
     } else{
@@ -53,8 +59,34 @@ let ResetPassword = async (req,res) =>{
     }
 }
 
+let enableUser = async (req,res) =>{
+    let resData= await userService.enableUser(req.params);
+    if(resData.errCode == 0){
+        return res.status(200).json(resData)
+    } if(resData.errCode == 4){
+        return res.status(409).json(resData)
+    } else{
+        return res.status(400).json(resData)
+    }
+}
+
+let disableUser = async (req,res) =>{
+    let resData= await userService.disableUser(req.params);
+    if(resData.errCode == 0){
+        return res.status(200).json(resData)
+    } if(resData.errCode == 4){
+        return res.status(409).json(resData)
+    } else{
+        return res.status(400).json(resData)
+    }
+}
+
+
+
 module.exports ={
     changePassword,
     updateInforUser,
-    ResetPassword
+    ResetPassword,
+    enableUser,
+    disableUser
 }

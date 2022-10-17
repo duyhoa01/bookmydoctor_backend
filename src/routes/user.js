@@ -9,7 +9,11 @@ router.post('/password/:id',authJwt.authenToken, authJwt.isAdminOrUser,userContr
 
 router.put('/:id',authJwt.authenToken, authJwt.isAdminOrUser,fileUploader.single('image'),userController.updateInforUser);
 
-router.get('/resetpw/:id',authJwt.authenToken, authJwt.isAdminOrUser,userController.ResetPassword);
+router.post('/resetpw',userController.ResetPassword);
+
+router.get('/enable/:id',authJwt.authenToken, authJwt.isAdmin,userController.enableUser);
+
+router.get('/disable/:id',authJwt.authenToken, authJwt.isAdmin,userController.disableUser);
 
 
 module.exports = router

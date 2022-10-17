@@ -268,7 +268,11 @@ let updateUser = (param,data) =>{
 let ResetPassword = (data) =>{
     return new Promise( async (resolve, reject)=>{
         try{
-            let user = await db.User.findByPk(data.id)
+            let user = await db.User.findOne({
+                where:{
+                    email: data.email
+                }
+            })
             if(user){
                 let newPaw= Math.floor(Math.random() * 100000000)+'';
                 let hashPasswordFromBcrypt = await hashUserPassword(newPaw);
@@ -278,7 +282,7 @@ let ResetPassword = (data) =>{
                 },
                 {
                     where:{
-                        id: data.id
+                        email:data.email
                     }
                 })
                 await emailService.sendEmailToResetPw({
@@ -293,7 +297,71 @@ let ResetPassword = (data) =>{
             } else{
                 resolve({
                     errCode:2,
-                    message:'id người dùng không tồn tại'
+                    message:'người dùng không tồn tại'
+                })
+            }
+        } catch( e){
+            reject(e)
+        }
+       
+    })
+}
+
+let enableUser = async (data) =>{
+    return new Promise( async (resolve, reject)=>{
+        try{
+            let user = await db.User.findByPk(data.id)
+            if(user){
+                if( user.status == 0 ){
+                    user.status = 1;
+                    await user.save();
+
+                    resolve({
+                        errCode:0,
+                        message:'mở khóa thành công người dùng'
+                    })
+                } else {
+                    resolve({
+                        errCode:4,
+                        message:'người dùng này đã được mở khóa trước đó'
+                    })
+                }
+            } else{
+                resolve({
+                    errCode:2,
+                    message:'người dùng không tồn tại'
+                })
+            }
+        } catch( e){
+            reject(e)
+        }
+       
+    })
+}
+
+let disableUser = async (data) => {
+    return new Promise( async (resolve, reject)=>{
+        try{
+            let user = await db.User.findByPk(data.id)
+            if(user){
+                if( user.status == 1 ){
+                    user.status = 0;
+                    await user.save();
+
+                    resolve({
+                        errCode:0,
+                        message:'khóa thành công người dùng'
+                    })
+                } else {
+                    resolve({
+                        errCode:4,
+                        message:'người dùng này đã được khóa trước đó'
+                    })
+                }
+            } else{
+                resolve({
+                    errCode:2,
+                    message:'người dùng không tồn tại'
                 })
             }
         } catch( e){
@@ -314,7 +382,9 @@ module.exports = {
     AdminCreateUser: AdminCreateUser,
     changePassword,
     updateUser,
-    ResetPassword
+    ResetPassword,
+    enableUser,
+    disableUser
 }
 
 
