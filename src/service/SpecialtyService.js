@@ -28,30 +28,8 @@ let getListSpecialty = async (key) =>{
         
         try {
             let roww=await db.sequelize.query("SET sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'");
-            // let row=await db.sequelize.query("SELECT @@sql_mode;");
             let spes = await db.sequelize.query("SELECT DISTINCT s.id,s.name,s.image,s.createdAt,s.updatedAt,s.description,SUM(d.id) as sum_doctor FROM Specialties as s LEFT JOIN Doctors as d ON s.id=d.specialty_id GROUP BY s.id;",{ type: QueryTypes.SELECT })
             console.log(spes)
-            // let rows = await db.Specialty.findAll({
-            //     order: [
-            //         ['id', 'DESC']
-            //     ],
-            //     include: {
-            //         model: db.Doctor,
-            //         require: true,
-            //         as: 'doctors',
-            //         attributes: [
-            //            'id'
-            //         ],
-            //     },
-            //     where:{
-            //         name: db.sequelize.where(db.sequelize.fn('LOWER', db.sequelize.col('name')), 'LIKE', '%' + key + '%')
-            //     },
-            //     attributes: {
-            //         include: [[db.sequelize.fn('COUNT', db.sequelize.col('doctors.id')), 'sum_doctor']]
-            //     },
-            //     group: ['Specialty.id'],
-            //     raw:true
-            // });
 
             resolve({
                 errCode:0,

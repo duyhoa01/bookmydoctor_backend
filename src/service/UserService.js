@@ -268,7 +268,11 @@ let updateUser = (param,data) =>{
 let ResetPassword = (data) =>{
     return new Promise( async (resolve, reject)=>{
         try{
-            let user = await db.User.findByPk(data.id)
+            let user = await db.User.findOne({
+                where:{
+                    email: data.email
+                }
+            })
             if(user){
                 let newPaw= Math.floor(Math.random() * 100000000)+'';
                 let hashPasswordFromBcrypt = await hashUserPassword(newPaw);
@@ -278,7 +282,7 @@ let ResetPassword = (data) =>{
                 },
                 {
                     where:{
-                        id: data.id
+                        email:data.email
                     }
                 })
                 await emailService.sendEmailToResetPw({
@@ -293,7 +297,7 @@ let ResetPassword = (data) =>{
             } else{
                 resolve({
                     errCode:2,
-                    message:'id người dùng không tồn tại'
+                    message:'người dùng không tồn tại'
                 })
             }
         } catch( e){

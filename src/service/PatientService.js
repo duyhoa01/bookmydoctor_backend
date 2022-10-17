@@ -57,7 +57,7 @@ let getAllPatient = async (key, pageNumber, size) =>{
                         exclude: ['password','token']
                     },
                 },
-                raw: true
+                // raw: true
             });
 
             resData.patients= rows;
@@ -89,7 +89,7 @@ let getPatientById = async (data) =>{
                         exclude: ['password','token']
                     },
                 },
-                raw: true
+                // raw: true
             });
 
             if(!patients){
