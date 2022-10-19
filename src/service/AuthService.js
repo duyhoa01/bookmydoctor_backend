@@ -1,7 +1,6 @@
 const db = require('../models/index');
-const userService = require('./UserService');
 const bcrypt = require('bcryptjs');
-
+const doctorService = require('./DoctorService');
 let handleUserLogin = (email, password) => {
     return new Promise(async(resolve, reject) => {
         try {
@@ -47,10 +46,13 @@ let handleUserLogin = (email, password) => {
                                     },
                                     raw: true,
                                 });
-                                user.hospital_id = doctor.hospital_id;
-                                user.clinic_id = doctor.clinic_id;
-                                user.specialty_id = doctor.specialty_id;
 
+                                if(doctor){
+                                    console.log(doctor.id);
+                                    let doctor_detail = await doctorService.getDoctorById(doctor.id);
+                                    delete doctor_detail.user;
+                                    user.doctor = doctor_detail;
+                                }
                             }
                             userData.errCode = 0;
                             userData.errMessage = "0k";
