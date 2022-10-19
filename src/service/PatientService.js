@@ -49,8 +49,7 @@ let getAllPatient = async (key, pageNumber, size) =>{
                     as: 'user',
                     where:{
                         [Op.or]:[
-                         {firsname: db.sequelize.where(db.sequelize.fn('LOWER', db.sequelize.col('firsname')), 'LIKE', '%' + key + '%')},
-                         {lastname: db.sequelize.where(db.sequelize.fn('LOWER', db.sequelize.col('lastname')), 'LIKE', '%' + key + '%')}
+                            { name: db.sequelize.where(db.sequelize.fn('concat', db.sequelize.col('firsname'), " ", db.sequelize.col('lastname')), 'LIKE', '%' + key + '%') },
                         ]
                     },
                     attributes: {
