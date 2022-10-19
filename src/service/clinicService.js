@@ -1,6 +1,5 @@
 const db = require('../models/index');
 const { Op, where } = require('sequelize');
-const doctorService = require('./DoctorService');
 
 
 let createClinic = (data) => {
@@ -56,11 +55,26 @@ let getAllClinic = (key, page, limit) => {
 let getClinicById = (id) => {
     return new Promise(async (resolve, reject) => {
         try {
-            let clinic = await db.Clinic.findByPk(id,{ raw: true });
-            if (clinic){
-                let doctor = await doctorService.getDoctorByClinicId(clinic.id);
-                clinic.doctor = doctor;
-            }           
+            let clinic = await db.Clinic.findByPk(id,
+                {
+                    // include: [{
+                    //     model: db.Doctor,
+                    //     required: true,
+                    //     as: 'doctor',
+                    //     include: [{
+                    //         model: db.User,
+                    //         required: true,
+                    //         as: 'user',
+                    //         attributes: {
+                    //             exclude: ['password', 'token']
+                    //         },
+                    //         where: {
+                    //             status: 1,
+                    //         },
+                    //     }],
+                    // }],
+                    raw: true 
+                });        
             resolve(clinic);
         } catch (err) {
             reject(err);
