@@ -9,24 +9,44 @@ let getAllDoctor = (key, page, limit) => {
             limit = limit - 0;
             let offset = page * limit;
             const { count, rows } = await db.Doctor.findAndCountAll({
-                include: {
-                    model: db.User,
-                    required: true,
-                    as: 'user',
-                    attributes: {
-                        exclude: ['password', 'token']
+                include: [
+                    {
+                        model: db.User,
+                        required: true,
+                        as: 'user',
+                        attributes: {
+                            exclude: ['password', 'token']
+                        },
+                        where: {
+                            status: 1,
+                            [Op.or]: [
+                                { name: db.sequelize.where(db.sequelize.fn('concat', db.sequelize.col('firsname'), " ", db.sequelize.col('lastname')), 'LIKE', '%' + key + '%') },
+                            ]
+                        },
                     },
-                    where: {
-                        status: 1,
-                        [Op.or]: [
-                            { name: db.sequelize.where(db.sequelize.fn('concat', db.sequelize.col('firsname'), " ", db.sequelize.col('lastname')), 'LIKE', '%' + key + '%') },
-                        ]
+                    {
+                        model: db.Hospital,
+                        required: true,
+                        as: 'hospital',
                     },
-                },
+                    {
+                        model: db.Clinic,
+                        required: true,
+                        as: 'clinic', 
+                    },
+                    {
+                        model: db.Specialty,
+                        required: true,
+                        as: 'specialty', 
+                    }
+
+                ],
+
                 offset: offset,
                 limit: limit,
 
-                raw: true
+                raw: true,
+                nest: true,
             });
             let resData = {};
             resData.doctor = rows;
@@ -45,18 +65,37 @@ let getDoctorById = (id) => {
     return new Promise(async (resolve, reject) => {
         try {
             let doctor = await db.Doctor.findOne({
-                include: {
-                    model: db.User,
-                    required: true,
-                    as: 'user',
-                    attributes: {
-                        exclude: ['password', 'token']
+                include: [
+                    {
+                        model: db.User,
+                        required: true,
+                        as: 'user',
+                        attributes: {
+                            exclude: ['password', 'token']
+                        }
                     },
-                },
+                    {
+                        model: db.Hospital,
+                        required: true,
+                        as: 'hospital',
+                    },
+                    {
+                        model: db.Clinic,
+                        required: true,
+                        as: 'clinic', 
+                    },
+                    {
+                        model: db.Specialty,
+                        required: true,
+                        as: 'specialty', 
+                    }
+
+                ],
                 where: {
                     id: id,
                 },
-                raw: true
+                raw: true,
+                nest: true,
             });
             resolve(doctor);
         } catch (err) {
@@ -248,6 +287,30 @@ let getDoctorByHospital = (id, key, page, limit) => {
         }
     });
 }
+let getDoctorByClinicId = (clinic_id) => {
+    return new Promise(async(resolve, reject) => {
+        try {
+            let doctor = await db.Doctor.findAndCountAll({
+                include: {
+                    model: db.User,
+                    required: true,
+                    as: 'user',
+                    attributes: {
+                        exclude: ['password', 'token']
+                    },
+                    where: {
+                        status: 1,
+                    },
+                },
+                where: { clinic_id: clinic_id },
+                raw: true
+            });
+            resolve(doctor);
+        } catch (e) {
+            reject(e);
+        }
+    });
+}
 module.exports = {
     getAllDoctor: getAllDoctor,
     getDoctorById: getDoctorById,
@@ -256,4 +319,5 @@ module.exports = {
     deleteDoctor: deleteDoctor,
     getDoctorBySpecialty: getDoctorBySpecialty,
     getDoctorByHospital: getDoctorByHospital,
+    getDoctorByClinicId: getDoctorByClinicId,
 }
