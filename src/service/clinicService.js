@@ -29,22 +29,6 @@ let getAllClinic = (key, page, limit) => {
             limit = limit - 0;
             let offset = page * limit;
             const { count, rows } = await db.Clinic.findAndCountAll({
-                include: [{
-                    model: db.Doctor,
-                    required: true,
-                    as: 'doctors',
-                    include: [{
-                        model: db.User,
-                        required: true,
-                        as: 'user',
-                        attributes: {
-                            exclude: ['password', 'token']
-                        },
-                        where: {
-                            status: 1,
-                        },
-                    }],
-                }],
                 where: {
                     [Op.or]: [
                         { name: db.sequelize.where(db.sequelize.fn('LOWER', db.sequelize.col('name')), 'LIKE', '%' + key + '%') },
@@ -71,10 +55,25 @@ let getAllClinic = (key, page, limit) => {
 let getClinicById = (id) => {
     return new Promise(async (resolve, reject) => {
         try {
-            let clinic = await db.Clinic.findByPk(id,
-                {
-                    raw: true,
-                    nest: true
+            let clinic = await db.Clinic.findByPk(id,{
+                include: [{
+                    model: db.Doctor,
+                    required: true,
+                    as: 'doctors',
+                    include: [{
+                        model: db.User,
+                        required: true,
+                        as: 'user',
+                        attributes: {
+                            exclude: ['password', 'token']
+                        },
+                        where: {
+                            status: 1,
+                        },
+                    }],
+                }],
+                raw: true,
+                nest: true
                 });        
             resolve(clinic);
         } catch (err) {
