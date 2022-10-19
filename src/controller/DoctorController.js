@@ -77,6 +77,11 @@ let createDoctor = async(req,res) => {
                 message: doctorData.errMessage,
                 doctor: doctorData.doctor
             })
+        } else if (doctorData.errCode === 404){
+            return res.status(404).json({
+                errCode: doctorData.errCode,
+                message: doctorData.errMessage,
+            })
         } else {
             return res.status(400).json({
                 errCode: doctorData.errCode,
@@ -110,6 +115,11 @@ let updateDoctor = async (req, res) => {
         data.id = id;
         let doctorData = await doctorService.updateDoctor(data);
         if (doctorData.errCode == 2) {
+            return res.status(404).json({
+                errCode: doctorData.errCode,
+                message: doctorData.errMessage,
+            })
+        } else if (doctorData.errCode === 404){
             return res.status(404).json({
                 errCode: doctorData.errCode,
                 message: doctorData.errMessage,

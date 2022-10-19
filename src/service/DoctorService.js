@@ -1,6 +1,10 @@
 const db = require('../models/index');
 const userService = require('./UserService');
 const { Op, where } = require('sequelize');
+const specialtyService = require('./SpecialtyService');
+const hospitalService = require('./HospitalService');
+const clinicService = require('./ClinicService');
+
 
 let getAllDoctor = (key, page, limit) => {
     return new Promise(async (resolve, reject) => {
@@ -107,6 +111,28 @@ let createDoctor = (data) => {
     return new Promise(async (resolve, reject) => {
         let doctorData = {};
         try {
+            let data1 = {};
+            data1.id = data.specialty_id;
+
+            let specialtyData = await specialtyService.getSpecialtyById(data1);
+
+            if(specialtyData.errCode !== 0) {
+                doctorData.errCode = 404;
+                doctorData.errMessage = "Không tồn tại chuyên khoa có id này";
+                resolve(doctorData);
+            }
+            let hospital = await hospitalService.getHospitalById(data.hospital_id);
+            if(!hospital) {
+                doctorData.errCode = 404;
+                doctorData.errMessage = "Không tồn tại bệnh viện có id này";
+                resolve(doctorData);
+            }
+            let clinic = await clinicService.getClinicById(data.clinic_id);
+            if(!clinic) {
+                doctorData.errCode = 404;
+                doctorData.errMessage = "Không tồn tại phòng khám có id này";
+                resolve(doctorData);
+            }
             let userData = await userService.AdminCreateUser(data, "ROLE_DOCTOR");
             if (userData.errCode === 0) {
                 const doctor = await db.Doctor.create(
@@ -134,7 +160,8 @@ let createDoctor = (data) => {
                     where: {
                         id: doctor.id,
                     },
-                    raw: true
+                    raw: true,
+                    nest: true
                 });
                 doctorData.doctor = doctor1;
             } else {
@@ -151,6 +178,28 @@ let updateDoctor = (data) => {
     return new Promise(async (resolve, reject) => {
         try {
             let doctorData = {};
+            let data1 = {};
+            data1.id = data.specialty_id;
+
+            let specialtyData = await specialtyService.getSpecialtyById(data1);
+
+            if(specialtyData.errCode !== 0) {
+                doctorData.errCode = 404;
+                doctorData.errMessage = "Không tồn tại chuyên khoa có id này";
+                resolve(doctorData);
+            }
+            let hospital = await hospitalService.getHospitalById(data.hospital_id);
+            if(!hospital) {
+                doctorData.errCode = 404;
+                doctorData.errMessage = "Không tồn tại bệnh viện có id này";
+                resolve(doctorData);
+            }
+            let clinic = await clinicService.getClinicById(data.clinic_id);
+            if(!clinic) {
+                doctorData.errCode = 404;
+                doctorData.errMessage = "Không tồn tại phòng khám có id này";
+                resolve(doctorData);
+            }
             let doctor = await db.Doctor.findByPk(data.id);
             if (doctor) {
                 let param = {};
@@ -162,6 +211,7 @@ let updateDoctor = (data) => {
                 doctor.hospital_id = data.hospital_id;
                 doctor.clinic_id = data.clinic_id;
                 doctor.specialty_id = data.specialty_id;
+                doctor.rate = data.rate;
                 await doctor.save();
                 let doctorEdit = await db.Doctor.findByPk(data.id,
                     {
@@ -235,7 +285,8 @@ let getDoctorBySpecialty = (id, key, page, limit) => {
                 offset: offset,
                 limit: limit,
                 where: { specialty_id: id },
-                raw: true
+                raw: true,
+                nest: true
             });
             let resData = {};
             resData.doctor = rows;
@@ -273,7 +324,8 @@ let getDoctorByHospital = (id, key, page, limit) => {
                 offset: offset,
                 limit: limit,
                 where: { hospital_id: id },
-                raw: true
+                raw: true,
+                nest: true
             });
             let resData = {};
             resData.doctor = rows;
@@ -287,30 +339,6 @@ let getDoctorByHospital = (id, key, page, limit) => {
         }
     });
 }
-let getDoctorByClinicId = (clinic_id) => {
-    return new Promise(async(resolve, reject) => {
-        try {
-            let doctor = await db.Doctor.findAndCountAll({
-                include: {
-                    model: db.User,
-                    required: true,
-                    as: 'user',
-                    attributes: {
-                        exclude: ['password', 'token']
-                    },
-                    where: {
-                        status: 1,
-                    },
-                },
-                where: { clinic_id: clinic_id },
-                raw: true
-            });
-            resolve(doctor);
-        } catch (e) {
-            reject(e);
-        }
-    });
-}
 module.exports = {
     getAllDoctor: getAllDoctor,
     getDoctorById: getDoctorById,
@@ -319,5 +347,4 @@ module.exports = {
     deleteDoctor: deleteDoctor,
     getDoctorBySpecialty: getDoctorBySpecialty,
     getDoctorByHospital: getDoctorByHospital,
-    getDoctorByClinicId: getDoctorByClinicId,
 }
