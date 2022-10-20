@@ -58,7 +58,43 @@ let getAllHospital = (key, page, limit) => {
 let getHospitalById = (id) => {
     return new Promise(async (resolve, reject) => {
         try {
-            let hospital = await db.Hospital.findByPk(id, {raw: true});
+            let hospital = await db.Hospital.findByPk(id, 
+                {
+                    include: [
+                        {
+                            model: db.Doctor,
+                            required: true,
+                            as: 'doctors',
+                            include: [
+                                {
+                                    model: db.User,
+                                    required: true,
+                                    as: 'user',
+                                    attributes: {
+                                        exclude: ['password', 'token']
+                                    },
+                                    where: {status: 1}
+                                },
+                                {
+                                    model: db.Clinic,
+                                    required: true,
+                                    as: 'clinic', 
+                                },
+                                {
+                                    model: db.Specialty,
+                                    required: true,
+                                    as: 'specialty', 
+                                }
+                            ]
+                        },    
+                    ],
+                    raw: true,
+                    nest: true
+                });
+                if (!hospital) {
+                    hospital = await db.Hospital.findByPk(id, {raw:true});
+                    hospital.doctors = [];
+                }
             resolve(hospital);
         } catch (err) {
             reject(err);
