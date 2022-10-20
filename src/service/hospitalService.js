@@ -60,41 +60,38 @@ let getHospitalById = (id) => {
         try {
             let hospital = await db.Hospital.findByPk(id, 
                 {
-                    include: [
-                        {
-                            model: db.Doctor,
-                            required: true,
-                            as: 'doctors',
-                            include: [
-                                {
-                                    model: db.User,
-                                    required: true,
-                                    as: 'user',
-                                    attributes: {
-                                        exclude: ['password', 'token']
-                                    },
-                                    where: {status: 1}
+                    include: {
+                        model: db.Doctor,
+                        require: true,
+                        as: 'doctors',
+                        include: [
+                            {
+                                model: db.User,
+                                required: true,
+                                as: 'user',
+                                attributes: {
+                                    exclude: ['password', 'token']
                                 },
-                                {
-                                    model: db.Clinic,
-                                    required: true,
-                                    as: 'clinic', 
-                                },
-                                {
-                                    model: db.Specialty,
-                                    required: true,
-                                    as: 'specialty', 
-                                }
-                            ]
-                        },    
-                    ],
-                    raw: true,
-                    nest: true
+                                where: {status: 1}
+                            },
+                            {
+                                model: db.Hospital,
+                                required: true,
+                                as: 'hospital',
+                            },
+                            {
+                                model: db.Specialty,
+                                required: true,
+                                as: 'specialty',
+                            },
+                            {
+                                model: db.Clinic,
+                                required: true,
+                                as: 'clinic', 
+                            },
+                        ]
+                    },
                 });
-                if (!hospital) {
-                    hospital = await db.Hospital.findByPk(id, {raw:true});
-                    hospital.doctors = [];
-                }
             resolve(hospital);
         } catch (err) {
             reject(err);

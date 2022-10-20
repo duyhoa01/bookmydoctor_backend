@@ -127,6 +127,11 @@ let getSpecialtyById = async (data) => {
                             as: 'hospital',
                         },
                         {
+                            model: db.Specialty,
+                            required: true,
+                            as: 'specialty',
+                        },
+                        {
                             model: db.Clinic,
                             required: true,
                             as: 'clinic', 
