@@ -36,10 +36,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: false
     },
-    cost: {
-      type: DataTypes.DOUBLE,
-      allowNull: false
-    },
   }, {
   sequelize,
   modelName: 'Appointment',

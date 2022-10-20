@@ -1,6 +1,7 @@
 const db= require('../models');
 const { Op, where } = require('sequelize');
 const { QueryTypes } = require('sequelize');
+const { raw } = require('express');
 
 let addSpecialty = async (data) =>{
     return new Promise( async (resolve, reject)=>{
@@ -109,12 +110,35 @@ let getSpecialtyById = async (data) => {
                 include: {
                     model: db.Doctor,
                     require: true,
-                    as: 'doctors'
+                    as: 'doctors',
+                    include: [
+                        {
+                            model: db.User,
+                            required: true,
+                            as: 'user',
+                            attributes: {
+                                exclude: ['password', 'token']
+                            },
+                            where: {status: 1}
+                        },
+                        {
+                            model: db.Hospital,
+                            required: true,
+                            as: 'hospital',
+                        },
+                        {
+                            model: db.Clinic,
+                            required: true,
+                            as: 'clinic', 
+                        },
+                    ]
+
                 },
                 where:{
                     id: data.id
-                }
+                },
             });
+            console.log(specialty);
 
             if(specialty){
                 resolve({

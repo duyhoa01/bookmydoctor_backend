@@ -17,11 +17,11 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull:false
       },
-      timeslot: {
-        type: Sequelize.STRING,
+      begin: {
+        type: Sequelize.DATE,
         allowNull:false
       },
-      date: {
+      end: {
         type: Sequelize.DATE,
         allowNull:false
       },

@@ -76,7 +76,8 @@ let getDoctorById = (id) => {
                         as: 'user',
                         attributes: {
                             exclude: ['password', 'token']
-                        }
+                        },
+                        where: {status: 1}
                     },
                     {
                         model: db.Hospital,
