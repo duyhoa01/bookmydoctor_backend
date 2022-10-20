@@ -55,29 +55,24 @@ let getAllClinic = (key, page, limit) => {
 let getClinicById = (id) => {
     return new Promise(async (resolve, reject) => {
         try {
-            let clinic = await db.Clinic.findByPk(id,{raw: true}); 
-            let doctor = await db.Doctor.findOne({
+            let clinic = await db.Clinic.findByPk(id, {
                 include: {
-                    model: db.User,
-                    required: true,
-                    as: 'user',
-                    attributes: {
-                        exclude: ['password', 'token']
-                    },
-                    where: {
-                        status: 1,
+                    model: db.Doctor,
+                    require: true,
+                    as: 'doctors',
+                    include: {
+                        model: db.User,
+                        required: true,
+                        as: 'user',
+                        attributes: {
+                            exclude: ['password', 'token']
+                        },
+                        where: {
+                            status: 1,
+                        },
                     },
                 },
-                where: {clinic_id: clinic.id},
-                raw: true,
-                nest: true
-            });  
-            if(doctor){
-                clinic.doctor = doctor;
-            }
-            else {
-                clinic.doctor = []
-            }             
+            });   
             resolve(clinic);
         } catch (err) {
             reject(err);
