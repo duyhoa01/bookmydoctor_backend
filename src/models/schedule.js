@@ -23,11 +23,11 @@ module.exports = (sequelize, DataTypes) => {
       type:DataTypes.INTEGER,
       allowNull:false
     },
-    timeslot: {
-      type:DataTypes.STRING,
+    begin: {
+      type:DataTypes.DATE,
       allowNull:false
     },
-    date: {
+    end: {
       type:DataTypes.DATE,
       allowNull:false
     },

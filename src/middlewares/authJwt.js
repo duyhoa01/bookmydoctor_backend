@@ -7,7 +7,6 @@ let authenToken = (req, res, next) => {
   const token = req.headers['authorization'];
   if (!token) res.sendStatus(403); // khong co token
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, data) => {
-    console.log(err, data);
     if (err) {
       return res.sendStatus(401).send({ message: "Unauthorized!" }); // khong co quyen truy cap chuc nang
     }
@@ -22,7 +21,7 @@ let isAdmin = (req, res, next) => {
     next();
     return;
   }
-  return res.status(403).send({ message: "Cần quyền Admin" });
+  return res.status(403).send({ message: "Require Admin Role!" });
 }
 
 let isCollaborators = (req, res, next) => {
@@ -80,7 +79,7 @@ let isAdminOrYourself = async(req, res, next) => {
     next();
     return;
   }
-  return res.status(403).send({ message: "Cần quyền Admin!" });
+  return res.status(403).send({ message: "Require Admin Role!!" });
 }
 
 let isAdminOrUser =async (req,res,next) =>{
@@ -96,7 +95,7 @@ let isAdminOrUser =async (req,res,next) =>{
     next();
     return;
   }
-  return res.status(403).send({ message: "Cần quyền Admin!" });
+  return res.status(403).send({ message: "Require Admin Role!!" });
 }
 
 module.exports = {

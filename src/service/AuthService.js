@@ -1,7 +1,6 @@
 const db = require('../models/index');
-const userService = require('./UserService');
 const bcrypt = require('bcryptjs');
-
+const doctorService = require('./DoctorService');
 let handleUserLogin = (email, password) => {
     return new Promise(async(resolve, reject) => {
         try {
@@ -27,12 +26,12 @@ let handleUserLogin = (email, password) => {
                     if(!check) {
                         console.log(user.password);
                         userData.errCode = 4;
-                        userData.errMessage = "Sai mat khau";
+                        userData.errMessage = "Sai mật khẩu";
                     }
                     else {
                         if(user.status == 0){
                             userData.errCode = 5;
-                            userData.errMessage = "Tai khoan chua xac thuc hoac da bi khoa";
+                            userData.errMessage = "Tài khoản chưa xác thực hoặc đã bị khóa";
                         }
                         else {
 
@@ -47,10 +46,13 @@ let handleUserLogin = (email, password) => {
                                     },
                                     raw: true,
                                 });
-                                user.hospital_id = doctor.hospital_id;
-                                user.clinic_id = doctor.clinic_id;
-                                user.specialty_id = doctor.specialty_id;
 
+                                if(doctor){
+                                    console.log(doctor.id);
+                                    let doctor_detail = await doctorService.getDoctorById(doctor.id);
+                                    delete doctor_detail.user;
+                                    user.doctor = doctor_detail;
+                                }
                             }
                             userData.errCode = 0;
                             userData.errMessage = "0k";
@@ -63,12 +65,12 @@ let handleUserLogin = (email, password) => {
 
                 } else {
                     userData.errCode = 3;
-                    userData.errMessage = "Tai khoan da bi khoa";
+                    userData.errMessage = "Tài khoản đã bị khóa";
                 }
 
             } else {
                 userData.errCode = 2;
-                userData.errMessage = "Ten nguoi dung khong ton tai"
+                userData.errMessage = "Email không tồn tại"
             }
             
             resolve(userData);
