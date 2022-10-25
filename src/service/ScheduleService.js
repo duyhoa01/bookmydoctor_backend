@@ -102,16 +102,24 @@ let checkbetwwen = (begin,end,date) =>{
     return false;
 }
 
-let getListSchedule = async (data) => {
+let getListSchedule = async (data,pageNumber, size) => {
     return new Promise(async(resolve, reject) => {
         try {
-            if(!data.startDate && !data.endDate){
-                let schedules = await db.Schedule.findAll({
+            pageNumber = pageNumber-0;
+            size = size -0;
+            let resData = {}
+            if(data.startDate && data.endDate){
+                const {count, rows} = await db.Schedule.findAndCountAll({
                     include:{
                         model: db.Doctor,
                         require: true,
                         as: 'doctor'
                     },
+                    order: [
+                        ['id', 'DESC']
+                    ],
+                    offset: pageNumber*size,
+                    limit: size,
                     where:{
                         [Op.and]:[{
                             begin: {
@@ -124,45 +132,83 @@ let getListSchedule = async (data) => {
                         ]
                     }
                 });
+                resData.schedules= rows;
+                resData.totalElements=count;
+                resData.totalPages= Math.ceil(count/size);
+            } else{
+                const {count, rows} = await db.Schedule.findAndCountAll({
+                    offset: pageNumber*size,
+                    limit: size,
+                    order: [
+                        ['id', 'DESC']
+                    ],
+                    include:{
+                        model: db.Doctor,
+                        require: true,
+                        as: 'doctor'
+                    }
+                });
+                resData.schedules= rows;
+                resData.totalElements=count;
+                resData.totalPages= Math.ceil(count/size);
             }
-            return resolve({
-                errCode:0,
-                message:schedules
-            })
+            resData.size=size;
+            resData.page = pageNumber;
+            return resolve(resData)
         } catch (e) {
             reject(e)
         }
     })
 }
 
-let getScheduleOfDoctor = async (params,data) => {
+let getScheduleOfDoctor = async (params,data,pageNumber, size) => {
     return new Promise(async(resolve, reject) => {
         try {
-            let schedules = await db.Schedule.findAll({
-                include:{
-                    model: db.Doctor,
-                    require: true,
-                    as: 'doctor',
+            pageNumber = pageNumber-0;
+            size = size -0;
+            let resData = {}
+            if(data.startDate && data.endDate){
+                const {count, rows} = await db.Schedule.findAndCountAll({
+                    order: [
+                        ['id', 'DESC']
+                    ],
+                    offset: pageNumber*size,
+                    limit: size,
                     where:{
-                        id: params.id
-                    }
-                },
-                where:{
-                    [Op.and]:[{
-                        begin: {
-                            [Op.between]: [data.startDate, data.endDate]
-                        },
-                        end: {
-                            [Op.between]: [data.startDate, data.endDate]
+                        [Op.and]:[{
+                            begin: {
+                                [Op.between]: [data.startDate, data.endDate]
+                            },
+                            end: {
+                                [Op.between]: [data.startDate, data.endDate]
+                            },
+                            doctor_id: params.id
                         }
+                        ]
+
                     }
-                    ]
-                }
-            });
-            return resolve({
-                errCode:0,
-                message:schedules
-            })
+                });
+                resData.schedules= rows;
+                resData.totalElements=count;
+                resData.totalPages= Math.ceil(count/size);
+            }else{
+                const {count, rows} = await db.Schedule.findAndCountAll({
+                    order: [
+                        ['id', 'DESC']
+                    ],
+                    offset: pageNumber*size,
+                    limit: size,
+                    where:{
+                        doctor_id: params.id
+                    }
+                });
+                resData.schedules= rows;
+                resData.totalElements=count;
+                resData.totalPages= Math.ceil(count/size);
+            }
+            resData.size=size;
+            resData.page = pageNumber;
+            return resolve(resData)
         } catch (e) {
             reject(e)
         }

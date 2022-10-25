@@ -12,13 +12,37 @@ let addSchedule = async (req,res) => {
 }
 
 let getListSchedule = async (req,res) => {
-    let resData = await scheduleService.getListSchedule(req.body)
-    return res.status(200).json(resData)
+    let pageNumber = req.query.page === undefined ? 0: req.query.page
+    let size = req.query.size === undefined ? 10 : req.query.size
+    let resData = await scheduleService.getListSchedule(req.body,pageNumber,size)
+    let page ={}
+    page.size= resData.size
+    page.totalPages= resData.totalPages
+    page.totalElements = resData.totalElements
+    page.page = resData.page
+    return res.status(200).json({
+        erroCode:0,
+        message: 'OK',
+        patients: resData.schedules,
+        page: page
+    })
 }
 
 let getListScheduleOfDoctor = async (req,res) =>{
-    let resDate= await scheduleService.getScheduleOfDoctor(req.params,req.body)
-    return res.status(200).json(resDate)
+    let pageNumber = req.query.page === undefined ? 0: req.query.page
+    let size = req.query.size === undefined ? 10 : req.query.size
+    let resData= await scheduleService.getScheduleOfDoctor(req.params,req.body,pageNumber,size)
+    let page ={}
+    page.size= resData.size
+    page.totalPages= resData.totalPages
+    page.totalElements = resData.totalElements
+    page.page = resData.page
+    return res.status(200).json({
+        erroCode:0,
+        message: 'OK',
+        patients: resData.schedules,
+        page: page
+    })
 }
 
 let updateSchedule = async (req,res) => {
