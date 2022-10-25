@@ -1,6 +1,12 @@
 const scheduleService = require('../service/ScheduleService')
 
 let addSchedule = async (req,res) => {
+    if (!req.body.begin || !req.body.end || !req.body.cost || !req.body.maxnumber || !req.body.doctor_id) {
+        return res.status(400).json({
+            erroCode:1,
+            message:'nhap day du thong tin'
+        })
+    }
     let resData= await scheduleService.addSchedule(req.body);
     if(resData.errCode == 2){
         return res.status(400).json(resData)
