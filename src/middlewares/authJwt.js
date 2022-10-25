@@ -98,6 +98,20 @@ let isAdminOrUser =async (req,res,next) =>{
   return res.status(403).send({ message: "Require Admin Role!!" });
 }
 
+let isYourSelf_Doctor = async (req,res,next) => {
+  let check = await db.Doctor.findOne({
+    where : {  
+      user_id : req.userID,
+      id : req.body.doctor_id,
+    },
+  });
+  if (check) {
+    next();
+    return;
+  }
+  return res.status(403).send({ message: "Bạn không có quyền này" });
+}
+
 module.exports = {
   authenToken: authenToken,
   isAdmin: isAdmin,
@@ -105,5 +119,6 @@ module.exports = {
   isDoctor: isDoctor,
   isPatient: isPatient,
   isAdminOrYourself: isAdminOrYourself,
-  isAdminOrUser
+  isAdminOrUser,
+  isYourSelf_Doctor
 }

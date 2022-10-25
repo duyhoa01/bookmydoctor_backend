@@ -9,14 +9,6 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      currentNumber: {
-        type: Sequelize.INTEGER,
-        allowNull:false
-      },
-      maxnumber: {
-        type: Sequelize.INTEGER,
-        allowNull:false
-      },
       begin: {
         type: Sequelize.DATE,
         allowNull:false
@@ -27,6 +19,10 @@ module.exports = {
       },
       doctor_id: {
         type: Sequelize.INTEGER,
+        allowNull:false
+      },
+      status: {
+        type:Sequelize.BOOLEAN,
         allowNull:false
       },
       cost: {

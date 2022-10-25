@@ -15,14 +15,6 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   Schedule.init({
-    currentNumber: {
-      type:DataTypes.INTEGER,
-      allowNull:false
-    },
-    maxnumber:{
-      type:DataTypes.INTEGER,
-      allowNull:false
-    },
     begin: {
       type:DataTypes.DATE,
       allowNull:false
@@ -35,10 +27,14 @@ module.exports = (sequelize, DataTypes) => {
       type:DataTypes.INTEGER,
       allowNull:false
     },
+    status: {
+      type:DataTypes.BOOLEAN,
+      allowNull:false
+    },
     cost: {
       type:DataTypes.DOUBLE,
       allowNull:false
-    },
+    }
   }, {
     sequelize,
     modelName: 'Schedule',

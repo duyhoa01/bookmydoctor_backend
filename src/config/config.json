@@ -10,8 +10,7 @@
       "ssl":{
         "require":true,
         "rejectUnauthorized": false
-      },
-      "multipleStatements": true
+      }
     }
     },
     
