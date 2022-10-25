@@ -100,10 +100,16 @@ let deletePatientById = async (req,res) => {
     }
 }
 
+let getIdPatientFromIdUser = async (req,res) =>{
+    let response= await patientService.getIdPatientFromIdUser(req.params);
+    return res.status(404).json(response)
+}
+
 module.exports = {
     addPatient,
     updatePatient,
     getPatients,
     getPatientById,
-    deletePatientById
+    deletePatientById,
+    getIdPatientFromIdUser
 }
