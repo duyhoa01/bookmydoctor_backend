@@ -23,7 +23,7 @@ let getListSchedule = async (req,res) => {
     return res.status(200).json({
         erroCode:0,
         message: 'OK',
-        patients: resData.schedules,
+        schedules: resData.schedules,
         page: page
     })
 }
@@ -40,12 +40,18 @@ let getListScheduleOfDoctor = async (req,res) =>{
     return res.status(200).json({
         erroCode:0,
         message: 'OK',
-        patients: resData.schedules,
+        schedules: resData.schedules,
         page: page
     })
 }
 
 let updateSchedule = async (req,res) => {
+    if (!req.body.begin || !req.body.end || !req.body.cost) {
+        return res.status(400).json({
+            erroCode:1,
+            message:'nhap day du thong tin'
+        })
+    }
     let resData = await scheduleService.updateSchedule(req.body,req.params)
     if(resData.errCode == 2){
         return res.status(400).json(resData)

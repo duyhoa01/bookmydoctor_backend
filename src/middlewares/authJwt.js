@@ -112,6 +112,51 @@ let isYourSelf_Doctor = async (req,res,next) => {
   return res.status(403).send({ message: "Bạn không có quyền này" });
 }
 
+let isDoctor_Schedule = async (req,res,next) => {
+  let schedule = await db.Schedule.findByPk(req.params.id)
+  if(!schedule){
+    return res.status(403).send({ message: "Bạn không có quyền này" });
+  }
+  let check = await db.Doctor.findOne({
+    where : {  
+      user_id : req.userID,
+      id : schedule.doctor_id,
+    },
+  });
+  if (check) {
+    next();
+    return;
+  }
+  return res.status(403).send({ message: "Bạn không có quyền này" });
+}
+
+let isAdminOrYourSelf_Doctor = async (req,res,next) => {
+
+  switch (req.role_name) {
+    case 'ROLE_ADMIN': {
+      next();
+      return;
+    }
+  }
+
+  let schedule = await db.Schedule.findByPk(req.params.id)
+  if(!schedule){
+    return res.status(403).send({ message: "Bạn không có quyền này" });
+  }
+
+  let check = await db.Doctor.findOne({
+    where : {  
+      user_id : req.userID,
+      id : schedule.doctor_id,
+    },
+  });
+  if (check) {
+    next();
+    return;
+  }
+  return res.status(403).send({ message: "Bạn không có quyền này" });
+}
+
 module.exports = {
   authenToken: authenToken,
   isAdmin: isAdmin,
@@ -120,5 +165,7 @@ module.exports = {
   isPatient: isPatient,
   isAdminOrYourself: isAdminOrYourself,
   isAdminOrUser,
-  isYourSelf_Doctor
+  isYourSelf_Doctor,
+  isDoctor_Schedule,
+  isAdminOrYourSelf_Doctor
 }

@@ -5,10 +5,10 @@ const db= require('../models');
 let addSchedule = async (data) =>{
     return new Promise(async(resolve, reject) => {
         try {
-            // data.begin= Date.parse(data.begin)
-            // data.end= Date.parse(data.end)
             data.begin= new Date(data.begin)
             data.end =  new Date(data.end)
+            beginCop= Date.parse(data.begin)
+            endCop= Date.parse(data.end)
             if(data.end<=data.begin){
                 return resolve({
                     errCode: 2,
@@ -22,7 +22,7 @@ let addSchedule = async (data) =>{
                 })
             }
 
-            let d=(data.end- data.begin)/data.maxnumber
+            let d=(endCop- beginCop)/data.maxnumber
 
             if(d<20*60000){
                 return resolve({
@@ -32,8 +32,8 @@ let addSchedule = async (data) =>{
             }
 
             let arr =[]
-            let begin = data.begin
-            let end = data.begin+d
+            let begin = beginCop
+            let end = beginCop+d
             for (let i = 0; i < data.maxnumber; i++) {
                 const schedule = await db.Schedule.create({
                     begin:begin,
@@ -86,7 +86,7 @@ let checkOverlapDateOfCreateSchedule = async (data,key) =>{
             } 
             if(checkbetwwen(s.begin,s.end,data.begin) ==true || checkbetwwen(s.begin,s.end,data.end) ==true
                 || checkbetwwen(data.begin,data.end,s.begin) ==true || checkbetwwen(data.begin,data.end,s.end) ==true
-                || (s.begin==data.begin && s.end==data.end)){
+                || (s.begin.getTime()===data.begin.getTime() && s.end.getTime()===data.end.getTime())){
                     return true;
                 }
         }
@@ -116,7 +116,7 @@ let getListSchedule = async (data,pageNumber, size) => {
                         as: 'doctor'
                     },
                     order: [
-                        ['id', 'DESC']
+                        ['begin', 'ASC']
                     ],
                     offset: pageNumber*size,
                     limit: size,
@@ -140,7 +140,7 @@ let getListSchedule = async (data,pageNumber, size) => {
                     offset: pageNumber*size,
                     limit: size,
                     order: [
-                        ['id', 'DESC']
+                        ['begin', 'ASC']
                     ],
                     include:{
                         model: db.Doctor,
@@ -170,7 +170,7 @@ let getScheduleOfDoctor = async (params,data,pageNumber, size) => {
             if(data.startDate && data.endDate){
                 const {count, rows} = await db.Schedule.findAndCountAll({
                     order: [
-                        ['id', 'DESC']
+                        ['begin', 'ASC']
                     ],
                     offset: pageNumber*size,
                     limit: size,
@@ -181,11 +181,10 @@ let getScheduleOfDoctor = async (params,data,pageNumber, size) => {
                             },
                             end: {
                                 [Op.between]: [data.startDate, data.endDate]
-                            },
-                            doctor_id: params.id
+                            }
                         }
-                        ]
-
+                        ],
+                        doctor_id: params.id
                     }
                 });
                 resData.schedules= rows;
@@ -194,7 +193,7 @@ let getScheduleOfDoctor = async (params,data,pageNumber, size) => {
             }else{
                 const {count, rows} = await db.Schedule.findAndCountAll({
                     order: [
-                        ['id', 'DESC']
+                        ['begin', 'ASC']
                     ],
                     offset: pageNumber*size,
                     limit: size,
@@ -218,8 +217,18 @@ let getScheduleOfDoctor = async (params,data,pageNumber, size) => {
 let updateSchedule = async (data,param) =>{
     return new Promise(async(resolve, reject) => {
         try {
-            data.begin= Date.parse(data.begin)
-            data.end= Date.parse(data.end)
+
+            let d=(Date.parse(data.end)- Date.parse(data.begin))
+
+            if(d<20*60000){
+                return resolve({
+                    errCode:2,
+                    message:'thời gian cho mỗi lịch khám phải tối thiểu 20 phút'
+                })
+            }
+            data.begin= new Date(data.begin)
+            data.end =  new Date(data.end)
+
             let schedule = await db.Schedule.findByPk(param.id);
             data.doctor_id=schedule.doctor_id
             data.id=param.id
@@ -239,9 +248,6 @@ let updateSchedule = async (data,param) =>{
             schedule.begin = data.begin
             schedule.end = data.end
             schedule.cost = data.cost
-            if(data.maxnumber > schedule.currentNumber){
-                schedule.maxnumber = data.maxnumber
-            }
 
             let upSchedule = await schedule.save()
 
@@ -304,7 +310,7 @@ let deleteSchedule = async (data) =>{
                     message:'id lịch khám không tồn tại'
                 })
             } else{
-                if(schedule.currentNumber > 0){
+                if(schedule.status == true){
                     return resolve({
                         errCode:2,
                         message:'lịch khám này đã có lịch hẹn với bệnh nhân'
