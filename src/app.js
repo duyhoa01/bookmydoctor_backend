@@ -28,7 +28,7 @@ connectDB()
 
 //static folder
 
-app.use('/Images', express.static('./Images'))
+// app.use('/Images', express.static('./Images'))
 
 //---------------------//
 
