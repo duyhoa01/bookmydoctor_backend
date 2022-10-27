@@ -13,6 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       this.belongsTo(models.Status, { foreignKey: 'status_id', as: 'status' });
       this.belongsTo(models.Schedule, { foreignKey: 'schedule_id', as: 'schedule' });
       this.belongsTo(models.Patient, { foreignKey: 'patient_id', as: 'patient' });
+      this.hasMany(models.Notification, { foreignKey: 'appointment_id', as: 'notification' });
     }
   }
   Appointment.init({

@@ -1,4 +1,4 @@
-const hospitalService = require('../service/HospitalService');
+const hospitalService = require('../service/hospitalService');
 
 let createHospital = async(req, res) => { 
     console.log('controller');

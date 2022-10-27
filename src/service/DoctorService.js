@@ -2,8 +2,8 @@ const db = require('../models/index');
 const userService = require('./UserService');
 const { Op, where } = require('sequelize');
 const specialtyService = require('./SpecialtyService');
-const hospitalService = require('./HospitalService');
-const clinicService = require('./ClinicService');
+const hospitalService = require('./hospitalService');
+const clinicService = require('./clinicService');
 
 
 let getAllDoctor = (key, page, limit) => {
