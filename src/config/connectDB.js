@@ -6,6 +6,7 @@ const sequelize = new Sequelize('bookmydoctor', 'ijx1vrcbhcb2draxumy6', 'pscale_
   host: 'us-east.connect.psdb.cloud',
   dialect: 'mysql',
   logging: false,
+  timezone: "+07:00",
   dialectOptions:{
     "ssl":{
       "require":true,

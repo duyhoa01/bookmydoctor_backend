@@ -1,7 +1,7 @@
 const express = require('express')
 // const db = require('./models')
 const bodyParser = require('body-parser')
-const connectDB = require('../src/config/connectDB');
+const connectDB = require('./src/config/connectDB');
 
 const app = express()
 const port = 3000
@@ -17,7 +17,7 @@ app.use(cors(corsOptions)) // Use this after the variable declaration
 
 app.use(bodyParser.json())
 
-const route= require('./routes')
+const route= require('./src/routes')
 
 // Route init
 app.use(express.json())
@@ -28,7 +28,7 @@ connectDB()
 
 //static folder
 
-// app.use('/Images', express.static('./Images'))
+app.use('/Images', express.static('./Images'))
 
 //---------------------//
 
