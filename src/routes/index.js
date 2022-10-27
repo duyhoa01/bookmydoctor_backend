@@ -8,6 +8,7 @@ const user = require('./user')
 const clinic = require('./clinic')
 const specialty = require('./specialty')
 const hospital = require('./hospital')
+const appointment = require('./appointment');
 const schedule = require('./schedule')
 
 
@@ -29,6 +30,7 @@ router.use('/users',user)
 router.use('/clinic', clinic)
 router.use('/specialty',specialty)
 router.use('/hospital', hospital)
+router.use('/appointment', appointment)
 router.use('/schedule',schedule)
 
 module.exports = router;

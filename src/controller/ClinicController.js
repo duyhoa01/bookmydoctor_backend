@@ -1,5 +1,5 @@
 const db = require('../models');
-const clinicService = require('../service/ClinicService');
+const clinicService = require('../service/clinicService');
 
 let createClinic = async(req, res) => { 
     if (!req.body.name || !req.body.street || !req.body.city){
