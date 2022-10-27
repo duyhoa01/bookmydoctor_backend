@@ -97,6 +97,13 @@ let isAdminOrUser =async (req,res,next) =>{
   }
   return res.status(403).send({ message: "Require Admin Role!!" });
 }
+let authenUser = async(req, res, next) => {
+  if (req.userID == req.params.id) {
+    next();
+    return;
+  }
+  return res.status(403).send({ message: "Không có quyền xem thông tin người khác" });
+}
 
 module.exports = {
   authenToken: authenToken,
@@ -105,5 +112,6 @@ module.exports = {
   isDoctor: isDoctor,
   isPatient: isPatient,
   isAdminOrYourself: isAdminOrYourself,
-  isAdminOrUser
+  isAdminOrUser: isAdminOrUser,
+  authenUser: authenToken
 }
