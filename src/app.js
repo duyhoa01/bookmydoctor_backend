@@ -1,6 +1,7 @@
 const express = require('express')
-const db = require('./models')
+// const db = require('./models')
 const bodyParser = require('body-parser')
+const connectDB = require('../src/config/connectDB');
 
 const app = express()
 const port = 3000
@@ -23,13 +24,15 @@ app.use(express.json())
 app.use(express.urlencoded({extended:false}))
 app.use("/api",route)
 
+connectDB()
+
 //static folder
 
-app.use('/Images', express.static('./Images'))
+// app.use('/Images', express.static('./Images'))
 
 //---------------------//
 
 app.listen(port, async () => {
   console.log(`Example app listening on port ${port}`)
-  await db.sequelize.authenticate()
+  // await db.sequelize.authenticate()
 })

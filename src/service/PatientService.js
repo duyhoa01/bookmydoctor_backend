@@ -203,11 +203,30 @@ let updatePatient = (param,data) =>{
     });
 }
 
+let getIdPatientFromIdUser = async (data) => {
+    let patient = await db.Patient.findOne({
+        include:{
+            model: db.User,
+            require: true,
+            as: 'user',
+            where:{
+                id: data.id
+            }
+        }
+    })
+    if(patient) {
+        return patient.id
+    } else{
+        return null
+    }
+}
+
 
 module.exports= {
     createPatient:createPatient,
     getAllPatient,
     getPatientById,
     deletePatientById,
-    updatePatient
+    updatePatient,
+    getIdPatientFromIdUser
 }

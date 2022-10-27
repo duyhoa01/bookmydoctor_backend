@@ -10,5 +10,7 @@ router.get('',authJwt.authenToken,patientController.getPatients);
 router.get('/:id',authJwt.authenToken,patientController.getPatientById);
 router.delete('/:id',authJwt.authenToken, authJwt.isAdmin,patientController.deletePatientById);
 router.put('/:id',authJwt.authenToken, authJwt.isAdminOrYourself,fileUploader.single('image'),patientController.updatePatient);
+router.get('/user/:id',patientController.getIdPatientFromIdUser);
+
 
 module.exports = router
