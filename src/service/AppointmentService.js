@@ -1,5 +1,5 @@
 const db = require('../models/index');
-const schedule = require('../models/schedule');
+const ScheduleServices = require('../service/ScheduleService');
 const patientService = require('../service/PatientService');
 const { Op, where } = require('sequelize');
 const appointment = require('../models/appointment');
@@ -11,33 +11,37 @@ let createAppointment = (data) => {
             let [status, created] = await db.Status.findOrCreate({
                 where: { name: "NEW" }, raw: true
             })
-
-            let patient = await patientService.GetPatientByUserId(data.user_id);
-            if(!patient){
+            let data2 = {};
+            data2.id = data.user_id;
+            let data3 = {};
+            data3.id = data.schedule_id;
+            let patientId = await patientService.getIdPatientFromIdUser(data2);
+            if(!patientId){
                 resData.errCode = 1;
                 resData.message = 'Không tìm thấy bệnh nhân';
                 resolve(resData);
+                return;
             }
-            let schedule = await ScheduleServices.getScheduleById(data.schedule_id);
-            if (!schedule) {
+            let resSchedule = await ScheduleServices.getScheduleById(data3);
+            if (resSchedule.errCode !== 0) {
                 resData.errCode = 2;
                 resData.message = 'Không tìm thấy lịch khám';
                 resolve(resData);
+                return;
+            }
+            if (resSchedule.message.status == true){
+                resData.errCode = 3;
+                resData.message = 'Đã hết lượt khám';
+                resolve(resData);
+                return;
             }
             let appointment = await db.Appointment.create({
-                patient_id: patient.id,
-                schedule_id: schedule.id,
-                date: schedule.begin,
-                sysmptoms: data.sysmptoms,
+                patient_id: patientId,
+                schedule_id: resSchedule.message.id,
+                date: resSchedule.message.begin,
+                symptoms: data.symptom,
                 status_id: status.id,
             });
-            // let appointment = await db.Appointment.create({
-            //     patient_id: 32,
-            //     schedule_id: 46,
-            //     date: "10/12/2021",
-            //     symptoms: data.symptoms,
-            //     status_id: status.id,
-            // });
             if (appointment) {
                 resData.errCode = 0;
                 resData.message = 'OK';
@@ -130,9 +134,10 @@ let getAllAppointments = (key, page, limit, status) => {
         }
     });
 }
-let getAppointmentById = (id) => {
+let getAppointmentById = (id, userId, role_name) => {
     return new Promise(async (resolve, reject) => {
         try {
+            let resData = {};
             let appointment = await db.Appointment.findByPk(id, {
                 include: [
                     {
@@ -179,13 +184,29 @@ let getAppointmentById = (id) => {
                 raw: true,
                 nest: true,
             });
-            resolve(appointment);
+            if (!appointment) {
+                resData.errCode = 1;
+                resData.message = 'Cuộc hẹn không tồn tại';
+                resolve(resData);
+                return;
+            }
+            if (role_name !== 'ROLE_ADMIN'){
+                if (appointment.patient.user.id !== userId && appointment.schedule.doctor.user.id !== userId){
+                    resData.errCode = 2;
+                    resData.message = 'Chỉ admin mới xem được thông tin lịch khám cửa người dùng khác';
+                    resolve(resData);
+                    return;
+                }
+            }
+            resData.errCode = 0;
+            resData.message = appointment;
+            resolve(resData);
         } catch (err) {
             reject(err);
         }
     });
 }
-let acceptAppointment = (id) => {
+let acceptAppointment = (id, userId) => {
     return new Promise(async (resolve, reject) => {
         let resData = {};
         try {
@@ -217,6 +238,7 @@ let acceptAppointment = (id) => {
                         as: 'status'
                     }
                 ],
+
             });
             if (!appointment) {
                 resData.errCode = 1;
@@ -224,7 +246,7 @@ let acceptAppointment = (id) => {
                 resolve(resData);
                 return;
             }
-            if (appointment.schedule.doctor.user !== req.userID) {
+            if (appointment.schedule.doctor.user.id != userId) {
                 resData.errCode = 3;
                 resData.message = "Không có quyền chấp nhận cuộc hẹn";
                 resolve(resData);
@@ -242,11 +264,14 @@ let acceptAppointment = (id) => {
             let statusNew = appointment.status_id;
             appointment.status_id = statusConfirmed.id;
             await appointment.save();
-            // Khi bác sĩ chấp nhận cuộc hẹn của bệnh nhân
-            // Tăng số lượng đã đang ký ở lịch khám và tăng thời gian bắt đầu lịch khám
+            await db.Schedule.update({
+                status: true,
+            }, {
+                where: {id: appointment.schedule.id}
+            });
             await db.Appointment.destroy({
                 where: {
-                    status: statusNew,
+                    status_id: statusNew,
                     schedule_id: appointment.schedule_id 
                 }
             })
@@ -258,7 +283,7 @@ let acceptAppointment = (id) => {
         }
     });
 }
-let getAppointmentForUserByUserId = (id, key, page, limit, status) => {
+let getAppointmentForUserByUserId = (id, key, page, limit, status, day) => {
     return new Promise(async (resolve, reject) => {
         try {
             id = id - 0;
@@ -268,6 +293,17 @@ let getAppointmentForUserByUserId = (id, key, page, limit, status) => {
             let requirement = {};
             if (status !== '') {
                 requirement = { name: status };
+            }
+            let requirementDate = {};
+            if (day){
+                day = day - 0;
+                let dateBegin = new Date();
+                let dateEnd = new Date();
+                console.log(day);
+                dateEnd.setDate(dateEnd.getDate() + day);
+                requirementDate = {
+                    begin: {[Op.between]: [dateBegin, dateEnd]}
+                };
             }
             const { count, rows } = await db.Appointment.findAndCountAll({
                 include: [
@@ -304,7 +340,8 @@ let getAppointmentForUserByUserId = (id, key, page, limit, status) => {
                                     exclude: ['password', 'token']
                                 },
                             }
-                        }
+                        },
+                        where: requirementDate,
                     },
                     {
                         model: db.Status,
@@ -372,7 +409,10 @@ let ChangeStatusAppointmentToDone = (id) => {
                 resolve(resData);
                 return;
             }
-            if(appointment.date < Date.now()) {
+
+            let datenow = new Date();
+            let dateAppointment = new Date((appointment.date).toString());
+            if(dateAppointment > datenow) {
                 resData.errCode = 3;
                 resData.message = 'Thời gian cuộc hẹn chưa kết thúc';
                 resolve(resData);
@@ -391,7 +431,7 @@ let ChangeStatusAppointmentToDone = (id) => {
         }
     });
 }
-let CanCelAppointment = (id) => {
+let CanCelAppointment = (id, userId) => {
     return new Promise(async (resolve, reject) => {
         let resData = {};
         try {
@@ -424,7 +464,7 @@ let CanCelAppointment = (id) => {
                 resolve(resData);
                 return;
             }
-            if (appointment.patient.user !== req.userID) {
+            if (appointment.patient.user.id !== userId) {
                 resData.errCode = 3;
                 resData.message = "Không có quyền hủy cuộc hẹn";
                 resolve(resData);
