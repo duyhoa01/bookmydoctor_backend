@@ -1,9 +1,10 @@
 let appointmentService = require('../service/AppointmentService');
 
 let createAppointment = async(req, res) => {
-    if (!req.body.user_id || !req.body.schedule_id || !req.body.symptoms){
+    if (!req.userID || !req.body.schedule_id || !req.body.symptom){
         res.status(404).json({message: 'Nhập thiếu thông tin'});       
     }
+    req.body.user_id = req.userID;
     let resData = await appointmentService.createAppointment(req.body);
     if(resData.errCode === 0){
         res.status(200).json(resData);
@@ -13,6 +14,9 @@ let createAppointment = async(req, res) => {
     }
     if(resData.errCode === 2){
         res.status(404).json(resData);
+    }
+    if(resData.errCode === 3){
+        res.status(400).json(resData);
     }
 }
 let getAllAppointments = async(req, res) => {
@@ -48,15 +52,22 @@ let getAppointmentById = async(req, res) => {
             errMessage: "Thiếu tham số id"
         })
     }
-    let appointment = await appointmentService.getAppointmentById(id);
-    if (appointment) {
+    let resData = await appointmentService.getAppointmentById(id, req.userID, req.role_name);
+    if (resData.errCode === 0) {
         return res.status(200).json({
-            message: appointment
+            message: resData.message
         })
     }   
-    return res.status(404).json({
-        message: 'Không tìm thấy cuộc hẹn có id này',
-    })
+    if(resData.errCode === 1) {
+        return res.status(404).json({
+            message: resData.message
+        })
+    }
+    if(resData.errCode === 2) {
+        return res.status(403).json({
+            message: resData.message
+        })
+    }
 
 }
 let getAppointmentForUserByUserId = async(req, res) => {
@@ -67,12 +78,19 @@ let getAppointmentForUserByUserId = async(req, res) => {
             errMessage: "Thiếu tham số id"
         })
     }
+    if(id != req.userID && req.role_name !== 'ROLE_ADMIN') {
+        return res.status(403).json({
+            errCode:0,
+            message: 'Chỉ admin mới có quyền xem cuộc hẹn của người khác',
+        })
+    }
     let key = req.query.key === undefined ? "" : req.query.key;
 
     let pageNumber = req.query.page === undefined ? 0: req.query.page;
     let limit = req.query.limit === undefined ? 10 : req.query.limit;
     let status =req.query.status === undefined ? '' : req.query.status; 
-    let resData = await appointmentService.getAppointmentForUserByUserId(id, key, pageNumber, limit, status);
+    let day = req.query.day === undefined ? undefined : req.query.day;
+    let resData = await appointmentService.getAppointmentForUserByUserId(id, key, pageNumber, limit, status, day);
     let page ={};
     page.size= resData.size;
     page.totalPages= resData.totalPages;
@@ -92,7 +110,7 @@ let acceptAppointment = async(req, res) => {
             message: 'Thiếu id cuộc hẹn'
         })
     }
-    let resData = await appointmentService.acceptAppointment(id);
+    let resData = await appointmentService.acceptAppointment(id,req.userID);
     if(resData.errCode === 1) {
         return res.status(404).json({
             message: resData.message
@@ -150,7 +168,7 @@ let CanCelAppointment = async(req, res) => {
             message: 'Thiếu id cuộc hẹn'
         })
     }
-    let resData = await appointmentService.CanCelAppointment(id);
+    let resData = await appointmentService.CanCelAppointment(id, req.userID);
     if(resData.errCode === 1) {
         return res.status(404).json({
             message: resData.message
@@ -179,7 +197,7 @@ let deleteAppointment = async(req, res) => {
             message: 'Thiếu id cuộc hẹn'
         })
     }
-    let resData = await appointmentService.ChangeStatusAppointmentToDone(id);
+    let resData = await appointmentService.deleteAppointment(id);
     if(resData.errCode === 1) {
         return res.status(404).json({
             message: resData.message
