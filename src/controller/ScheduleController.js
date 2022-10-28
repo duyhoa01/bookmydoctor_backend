@@ -20,7 +20,7 @@ let addSchedule = async (req,res) => {
 let getListSchedule = async (req,res) => {
     let pageNumber = req.query.page === undefined ? 0: req.query.page
     let size = req.query.size === undefined ? 10 : req.query.size
-    let resData = await scheduleService.getListSchedule(req.body,pageNumber,size)
+    let resData = await scheduleService.getListSchedule(req.query,pageNumber,size)
     let page ={}
     page.size= resData.size
     page.totalPages= resData.totalPages
@@ -37,7 +37,7 @@ let getListSchedule = async (req,res) => {
 let getListScheduleOfDoctor = async (req,res) =>{
     let pageNumber = req.query.page === undefined ? 0: req.query.page
     let size = req.query.size === undefined ? 10 : req.query.size
-    let resData= await scheduleService.getScheduleOfDoctor(req.params,req.body,pageNumber,size)
+    let resData= await scheduleService.getScheduleOfDoctor(req.params,req.query,pageNumber,size)
     let page ={}
     page.size= resData.size
     page.totalPages= resData.totalPages
