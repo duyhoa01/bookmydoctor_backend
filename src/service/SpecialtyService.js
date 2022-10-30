@@ -29,7 +29,7 @@ let getListSpecialty = async (key) =>{
         
         try {
             let roww=await db.sequelize.query("SET sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'");
-            let spes = await db.sequelize.query("SELECT DISTINCT s.id,s.name,s.image,s.createdAt,s.updatedAt,s.description,SUM(d.id) as sum_doctor FROM Specialties as s LEFT JOIN Doctors as d ON s.id=d.specialty_id WHERE s.name LIKE CONCAT('%',:key,'%') GROUP BY s.id;",{ replacements: { key: key },type: QueryTypes.SELECT })
+            let spes = await db.sequelize.query("SELECT DISTINCT s.id,s.name,s.image,s.createdAt,s.updatedAt,s.description,COUNT(d.id) as sum_doctor FROM Specialties as s LEFT JOIN Doctors as d ON s.id=d.specialty_id WHERE s.name LIKE CONCAT('%',:key,'%') GROUP BY s.id;",{ replacements: { key: key },type: QueryTypes.SELECT })
 
             resolve({
                 errCode:0,
