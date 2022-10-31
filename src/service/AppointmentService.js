@@ -2,7 +2,9 @@ const db = require('../models/index');
 const ScheduleServices = require('../service/ScheduleService');
 const patientService = require('../service/PatientService');
 const { Op, where } = require('sequelize');
-const appointment = require('../models/appointment');
+const emailService = require('../service/emailService');
+const notificationService = require('../service/NotificationService');
+
 
 let createAppointment = (data) => {
     return new Promise(async (resolve, reject) => {
@@ -15,8 +17,8 @@ let createAppointment = (data) => {
             data2.id = data.user_id;
             let data3 = {};
             data3.id = data.schedule_id;
-            let patientId = await patientService.getIdPatientFromIdUser(data2);
-            if(!patientId){
+            let patient = await patientService.getPatientFromIdUser(data2);
+            if (!patient) {
                 resData.errCode = 1;
                 resData.message = 'Không tìm thấy bệnh nhân';
                 resolve(resData);
@@ -29,14 +31,14 @@ let createAppointment = (data) => {
                 resolve(resData);
                 return;
             }
-            if (resSchedule.message.status == true){
+            if (resSchedule.message.status == true) {
                 resData.errCode = 3;
                 resData.message = 'Đã hết lượt khám';
                 resolve(resData);
                 return;
             }
             let appointment = await db.Appointment.create({
-                patient_id: patientId,
+                patient_id: patient.id,
                 schedule_id: resSchedule.message.id,
                 date: resSchedule.message.begin,
                 symptoms: data.symptom,
@@ -46,6 +48,14 @@ let createAppointment = (data) => {
                 resData.errCode = 0;
                 resData.message = 'OK';
                 resData.data = appointment;
+                // Tao thong bao lich kham cho bac si
+                let message = `Bệnh nhân ${patient.user.firsname} ${patient.user.lastname} đăng ký lịch khám ngày ${appointment.date}`;
+                notificationService.CreateNotification(appointment.id, resSchedule.message.doctor.user.id, message);
+                notificationService.deleteNotificationOfUserLastWeek(resSchedule.message.doctor.user.id);
+                let dataSend = {};
+                dataSend.message = message;
+                dataSend.receiverEmail = resSchedule.message.doctor.user.email;
+                // emailService.sendNotification(dataSend);
             }
             resolve(resData);
         } catch (e) {
@@ -190,8 +200,8 @@ let getAppointmentById = (id, userId, role_name) => {
                 resolve(resData);
                 return;
             }
-            if (role_name !== 'ROLE_ADMIN'){
-                if (appointment.patient.user.id !== userId && appointment.schedule.doctor.user.id !== userId){
+            if (role_name !== 'ROLE_ADMIN') {
+                if (appointment.patient.user.id !== userId && appointment.schedule.doctor.user.id !== userId) {
                     resData.errCode = 2;
                     resData.message = 'Chỉ admin mới xem được thông tin lịch khám cửa người dùng khác';
                     resolve(resData);
@@ -212,6 +222,20 @@ let acceptAppointment = (id, userId) => {
         try {
             let appointment = await db.Appointment.findByPk(id, {
                 include: [
+                    {
+                        model: db.Patient,
+                        required: true,
+                        as: 'patient',
+                        include:
+                        {
+                            model: db.User,
+                            required: true,
+                            as: 'user',
+                            attributes: {
+                                exclude: ['password', 'token']
+                            },
+                        },
+                    },
                     {
                         model: db.Schedule,
                         required: true,
@@ -267,12 +291,54 @@ let acceptAppointment = (id, userId) => {
             await db.Schedule.update({
                 status: true,
             }, {
-                where: {id: appointment.schedule.id}
+                where: { id: appointment.schedule.id }
             });
+            // Tao thong bao lich kham cho benh nhan
+            let message = `Bác sĩ ${appointment.schedule.doctor.user.firsname} ${appointment.schedule.doctor.user.lastname} đã chấp nhận lịch khám ngày ${appointment.date}`
+            notificationService.CreateNotification(appointment.id, appointment.patient.user.id, message);
+            notificationService.deleteNotificationOfUserLastWeek(appointment.patient.user.id)
+            let dataSend = {};
+            dataSend.message = message;
+            dataSend.receiverEmail = appointment.patient.user.email;
+            emailService.sendNotification(dataSend)
+            // Gui thong bao cuoc hen bi tu choi cho benh nhan
+            let appointments = await db.Appointment.findAll({
+                include: [
+                    {
+                        model: db.Patient,
+                        required: true,
+                        as: 'patient',
+                        include:
+                        {
+                            model: db.User,
+                            required: true,
+                            as: 'user',
+                            attributes: {
+                                exclude: ['password', 'token']
+                            },
+                        },
+                    },],
+                where: {
+                    status_id: statusNew,
+                    schedule_id: appointment.schedule_id
+                }
+            })
+            // let message2 = `Bác sĩ ${appointment.schedule.doctor.user.firsname} ${appointment.schedule.doctor.user.lastname} từ chối lịch khám ngày ${appointment.date}`
+            // appointments.map(a => async () => {
+            //     let dataSend = {
+            //         receiverEmail: a.patient.user.email,
+            //         message: message2
+            //     }
+            //     notificationService.CreateNotification(appointment.id, a.patient.user.id, message);
+            //     notificationService.deleteNotificationOfUserLastWeek(a.patient.user.id);
+            // emailService.sendNotification(dataSend);
+
+            // })
+            // xoa appointment khong duoc chap nhan
             await db.Appointment.destroy({
                 where: {
                     status_id: statusNew,
-                    schedule_id: appointment.schedule_id 
+                    schedule_id: appointment.schedule_id
                 }
             })
             resData.errCode = 0;
@@ -295,14 +361,14 @@ let getAppointmentForUserByUserId = (id, key, page, limit, status, day) => {
                 requirement = { name: status };
             }
             let requirementDate = {};
-            if (day){
+            if (day) {
                 day = day - 0;
                 let dateBegin = new Date();
                 let dateEnd = new Date();
                 console.log(day);
                 dateEnd.setDate(dateEnd.getDate() + day);
                 requirementDate = {
-                    begin: {[Op.between]: [dateBegin, dateEnd]}
+                    begin: { [Op.between]: [dateBegin, dateEnd] }
                 };
             }
             const { count, rows } = await db.Appointment.findAndCountAll({
@@ -386,16 +452,51 @@ let getAppointmentForUserByUserId = (id, key, page, limit, status, day) => {
     })
 }
 let ChangeStatusAppointmentToDone = (id) => {
-    return new Promise(async(resolve,reject) => {
+    return new Promise(async (resolve, reject) => {
         try {
             let resData = {};
-            let appointment = await db.Appointment.findByPk(id,{
-                include:
-                {
-                    model: db.Status,
-                    required: true,
-                    as: 'status'
-                }
+            let appointment = await db.Appointment.findByPk(id, {
+                include: [
+                    {
+                        model: db.Status,
+                        required: true,
+                        as: 'status'
+                    },
+                    {
+                        model: db.Patient,
+                        required: true,
+                        as: 'patient',
+                        include:
+                        {
+                            model: db.User,
+                            required: true,
+                            as: 'user',
+                            attributes: {
+                                exclude: ['password', 'token']
+                            },
+                        },
+                    },
+
+                    {
+                        model: db.Schedule,
+                        required: true,
+                        as: 'schedule',
+                        include:
+                        {
+                            model: db.Doctor,
+                            required: true,
+                            as: 'doctor',
+                            include:
+                            {
+                                model: db.User,
+                                required: true,
+                                as: 'user',
+                                attributes: {
+                                    exclude: ['password', 'token']
+                                },
+                            }
+                        }
+                    },]
             });
             if (!appointment) {
                 resData.errCode = 1;
@@ -412,7 +513,7 @@ let ChangeStatusAppointmentToDone = (id) => {
 
             let datenow = new Date();
             let dateAppointment = new Date((appointment.date).toString());
-            if(dateAppointment > datenow) {
+            if (dateAppointment > datenow) {
                 resData.errCode = 3;
                 resData.message = 'Thời gian cuộc hẹn chưa kết thúc';
                 resolve(resData);
@@ -423,6 +524,24 @@ let ChangeStatusAppointmentToDone = (id) => {
             });
             appointment.status_id = status.id;
             await appointment.save();
+            // Gui thong bao cuoc hen hoan thanh cho benh nhan va bac si
+            // Thong bao cho benh nhan
+            let message = `Admin đã xác thực buổi khám ngày ${appointment.date} đã hoàn thành`
+            notificationService.CreateNotification(appointment.id, appointment.patient.user.id, message);
+            notificationService.deleteNotificationOfUserLastWeek(appointment.patient.user.id);
+            let dataSend = {};
+            dataSend.message = message;
+            dataSend.receiverEmail = appointment.patient.user.email;
+            // await emailService.sendNotification(dataSend);
+            // Thong bao cho bac si
+            notificationService.CreateNotification(appointment.id, appointment.schedule.doctor.user.id, message);
+            notificationService.deleteNotificationOfUserLastWeek(appointment.schedule.doctor.user.id);
+
+            let dataSend2 = {};
+            dataSend.message = message;
+            dataSend.receiverEmail = appointment.schedule.doctor.user.email;
+            // await emailService.sendNotification(dataSend2);
+
             resData.errCode = 0;
             resData.message = 'OK';
             resolve(resData);
@@ -490,7 +609,7 @@ let CanCelAppointment = (id, userId) => {
     });
 }
 let deleteAppointment = (id) => {
-    return new Promise(async(resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         try {
             let resData = {};
             let appointment = await db.Appointment.findByPk(id);

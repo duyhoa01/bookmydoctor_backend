@@ -93,14 +93,19 @@ let getDoctorById = (id) => {
                         model: db.Specialty,
                         required: true,
                         as: 'specialty', 
+                    },
+                    {
+                        model: db.Schedule,
+                        require: true,
+                        as: 'schedules', 
                     }
 
                 ],
                 where: {
                     id: id,
                 },
-                raw: true,
-                nest: true,
+                // raw: true,
+                // nest: true,
             });
             resolve(doctor);
         } catch (err) {
