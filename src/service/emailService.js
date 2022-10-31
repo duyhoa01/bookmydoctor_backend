@@ -51,7 +51,30 @@ let sendEmailToResetPw = async(dataSend) => {
     });
 }
 
+let sendNotification = async(dataSend) => {
+    let transporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false, 
+        auth: {
+            user: process.env.EMAIL_NAME, 
+            pass: process.env.EMAIL_APP_PASSWORD, 
+        },
+    });
+
+    
+    let info = await transporter.sendMail({
+        from: '"BookMyDoctor 👻" <bookmydoctor22@gmail.com>', 
+        to: dataSend.receiverEmail, 
+        subject: "Thông báo lịch khám", 
+        html: `
+        <p>${dataSend.message}</p>
+        `, 
+    });
+}
+
 module.exports = {
     sendSimpleEmail,
-    sendEmailToResetPw
+    sendEmailToResetPw,
+    sendNotification
 }

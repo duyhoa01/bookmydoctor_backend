@@ -3,9 +3,9 @@ const { Op, where } = require('sequelize');
 
 
 let createClinic = (data) => {
-    return new Promise(async(resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         let resData = {};
-        try{
+        try {
             let clinic = await db.Clinic.create(
                 {
                     name: data.name,
@@ -17,7 +17,7 @@ let createClinic = (data) => {
             resData.errCode = 0;
             resData.errMessage = clinic;
             resolve(resData);
-        } catch(err) {
+        } catch (err) {
             reject(err);
         }
     })
@@ -60,9 +60,9 @@ let getClinicById = (id) => {
                     model: db.Doctor,
                     require: true,
                     as: 'doctors',
-                    include: {
+                    include: [{
                         model: db.User,
-                        required: true,
+                        require: true,
                         as: 'user',
                         attributes: {
                             exclude: ['password', 'token']
@@ -71,8 +71,30 @@ let getClinicById = (id) => {
                             status: 1,
                         },
                     },
+                    {
+                        model: db.Hospital,
+                        require: true,
+                        as: 'hospital',
+                    },
+                    {
+                        model: db.Clinic,
+                        require: true,
+                        as: 'clinic',
+                    },
+                    {
+                        model: db.Specialty,
+                        require: true,
+                        as: 'specialty',
+                    },
+                    {
+                        model: db.Schedule,
+                        require: true,
+                        as: 'schedules',
+                    }
+                    ],
                 },
-            });   
+            });
+
             resolve(clinic);
         } catch (err) {
             reject(err);
@@ -80,7 +102,7 @@ let getClinicById = (id) => {
     });
 }
 let searchClinic = (key) => {
-    return new Promise(async(resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         try {
             let clinic = await db.Clinic.findAll({
                 where: {
@@ -96,7 +118,7 @@ let searchClinic = (key) => {
     })
 }
 let updateClinic = (id, data) => {
-    return new Promise(async(resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         try {
             let resData = {};
             let clinic = await db.Clinic.findByPk(id);
@@ -104,7 +126,7 @@ let updateClinic = (id, data) => {
                 clinic.name = data.name;
                 clinic.street = data.street;
                 clinic.city = data.city;
-                clinic.image = data.image !== '0' ? data.image : clinic.image; 
+                clinic.image = data.image !== '0' ? data.image : clinic.image;
                 await clinic.save();
                 resData.errCode = 0;
                 resData.errMessage = clinic;
@@ -119,7 +141,7 @@ let updateClinic = (id, data) => {
     })
 }
 let deleteClinic = (id) => {
-    return new Promise(async(resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         try {
             let resData = {};
             let clinic = await getClinicById(id);
