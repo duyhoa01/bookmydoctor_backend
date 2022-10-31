@@ -1,4 +1,3 @@
-const { response } = require('express');
 const notificationService = require('../service/NotificationService');
 let ChangeStatusNotifications = async(req, res) => {
     let id = req.params.id;
