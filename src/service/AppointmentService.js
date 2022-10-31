@@ -55,7 +55,7 @@ let createAppointment = (data) => {
                 let dataSend = {};
                 dataSend.message = message;
                 dataSend.receiverEmail = resSchedule.message.doctor.user.email;
-                emailService.sendNotification(dataSend);
+                // emailService.sendNotification(dataSend);
             }
             resolve(resData);
         } catch (e) {
@@ -323,17 +323,17 @@ let acceptAppointment = (id, userId) => {
                     schedule_id: appointment.schedule_id
                 }
             })
-            let message2 = `Bác sĩ ${appointment.schedule.doctor.user.firsname} ${appointment.schedule.doctor.user.lastname} từ chối lịch khám ngày ${appointment.date}`
-            appointments.map(a => async () => {
-                let dataSend = {
-                    receiverEmail: a.patient.user.email,
-                    message: message2
-                }
-                notificationService.CreateNotification(appointment.id, a.patient.user.id, message);
-                notificationService.deleteNotificationOfUserLastWeek(a.patient.user.id);
-                emailService.sendNotification(dataSend);
+            // let message2 = `Bác sĩ ${appointment.schedule.doctor.user.firsname} ${appointment.schedule.doctor.user.lastname} từ chối lịch khám ngày ${appointment.date}`
+            // appointments.map(a => async () => {
+            //     let dataSend = {
+            //         receiverEmail: a.patient.user.email,
+            //         message: message2
+            //     }
+            //     notificationService.CreateNotification(appointment.id, a.patient.user.id, message);
+            //     notificationService.deleteNotificationOfUserLastWeek(a.patient.user.id);
+            // emailService.sendNotification(dataSend);
 
-            })
+            // })
             // xoa appointment khong duoc chap nhan
             await db.Appointment.destroy({
                 where: {
@@ -532,7 +532,7 @@ let ChangeStatusAppointmentToDone = (id) => {
             let dataSend = {};
             dataSend.message = message;
             dataSend.receiverEmail = appointment.patient.user.email;
-            await emailService.sendNotification(dataSend);
+            // await emailService.sendNotification(dataSend);
             // Thong bao cho bac si
             notificationService.CreateNotification(appointment.id, appointment.schedule.doctor.user.id, message);
             notificationService.deleteNotificationOfUserLastWeek(appointment.schedule.doctor.user.id);
@@ -540,7 +540,7 @@ let ChangeStatusAppointmentToDone = (id) => {
             let dataSend2 = {};
             dataSend.message = message;
             dataSend.receiverEmail = appointment.schedule.doctor.user.email;
-            await emailService.sendNotification(dataSend2);
+            // await emailService.sendNotification(dataSend2);
 
             resData.errCode = 0;
             resData.message = 'OK';
