@@ -55,7 +55,7 @@ let createAppointment = (data) => {
                 let dataSend = {};
                 dataSend.message = message;
                 dataSend.receiverEmail = resSchedule.message.doctor.user.email;
-                // emailService.sendNotification(dataSend);
+                emailService.sendNotification(dataSend);
             }
             resolve(resData);
         } catch (e) {
@@ -64,7 +64,7 @@ let createAppointment = (data) => {
 
     });
 }
-let getAllAppointments = (key, page, limit, status) => {
+let getAllAppointments = (key, page, limit, status, date_string) => {
     return new Promise(async (resolve, reject) => {
         try {
             page = page - 0;
@@ -74,6 +74,23 @@ let getAllAppointments = (key, page, limit, status) => {
             if (status !== '') {
                 requirement = { name: status };
             }
+            let requirementDate = {};
+            if (date_string !== '') {
+                let dateStart = new Date(date_string);
+                let dateEnd = new Date(date_string);
+                dateEnd.setDate(dateStart.getDate() + 1);
+                // Chuyen sang mui gio +7
+                dateStart.setHours(dateStart.getHours() + 7);
+                dateEnd.setHours(dateEnd.getHours() + 7);
+
+                console.log(dateStart, dateEnd);
+                requirementDate = {
+                    date: {
+                        [Op.between]: [dateStart,dateEnd]
+                    }
+                }
+            }
+
             const { count, rows } = await db.Appointment.findAndCountAll({
                 include: [
                     {
@@ -119,9 +136,14 @@ let getAllAppointments = (key, page, limit, status) => {
                     }
                 ],
                 where: {
-                    [Op.or]: [
-                        { Patientname: db.sequelize.where(db.sequelize.fn('concat', db.sequelize.col('patient.user.firsname'), " ", db.sequelize.col('patient.user.lastname')), 'LIKE', '%' + key + '%') },
-                        { Doctorname: db.sequelize.where(db.sequelize.fn('concat', db.sequelize.col('schedule.doctor.user.firsname'), " ", db.sequelize.col('schedule.doctor.user.lastname')), 'LIKE', '%' + key + '%') }
+                    [Op.and]: [
+                        {
+                            [Op.or]: [
+                                { Patientname: db.sequelize.where(db.sequelize.fn('concat', db.sequelize.col('patient.user.firsname'), " ", db.sequelize.col('patient.user.lastname')), 'LIKE', '%' + key + '%') },
+                                { Doctorname: db.sequelize.where(db.sequelize.fn('concat', db.sequelize.col('schedule.doctor.user.firsname'), " ", db.sequelize.col('schedule.doctor.user.lastname')), 'LIKE', '%' + key + '%') }
+                            ]
+                        },
+                        requirementDate
                     ]
                 },
                 order: [
@@ -323,17 +345,17 @@ let acceptAppointment = (id, userId) => {
                     schedule_id: appointment.schedule_id
                 }
             })
-            // let message2 = `Bác sĩ ${appointment.schedule.doctor.user.firsname} ${appointment.schedule.doctor.user.lastname} từ chối lịch khám ngày ${appointment.date}`
-            // appointments.map(a => async () => {
-            //     let dataSend = {
-            //         receiverEmail: a.patient.user.email,
-            //         message: message2
-            //     }
-            //     notificationService.CreateNotification(appointment.id, a.patient.user.id, message);
-            //     notificationService.deleteNotificationOfUserLastWeek(a.patient.user.id);
-            // emailService.sendNotification(dataSend);
+            let message2 = `Bác sĩ ${appointment.schedule.doctor.user.firsname} ${appointment.schedule.doctor.user.lastname} từ chối lịch khám ngày ${appointment.date}`
+            appointments.map(a => {
+                console.log(a.patient.user.email);
+                let dataSend = {
+                    receiverEmail: a.patient.user.email,
+                    message: message2
+                }
+                notificationService.CreateNotification(appointment.id, a.patient.user.id, message2);
+                notificationService.deleteNotificationOfUserLastWeek(a.patient.user.id);
 
-            // })
+            });
             // xoa appointment khong duoc chap nhan
             await db.Appointment.destroy({
                 where: {
@@ -349,7 +371,7 @@ let acceptAppointment = (id, userId) => {
         }
     });
 }
-let getAppointmentForUserByUserId = (id, key, page, limit, status, day) => {
+let getAppointmentForUserByUserId = (id, key, page, limit, status, day, date_string) => {
     return new Promise(async (resolve, reject) => {
         try {
             id = id - 0;
@@ -370,6 +392,22 @@ let getAppointmentForUserByUserId = (id, key, page, limit, status, day) => {
                 requirementDate = {
                     begin: { [Op.between]: [dateBegin, dateEnd] }
                 };
+            }
+            let requirementDate2 = {};
+            if (date_string !== '') {
+                let dateStart = new Date(date_string);
+                let dateEnd = new Date(date_string);
+                dateEnd.setDate(dateStart.getDate() + 1);
+                // Chuyen sang mui gio +7
+                dateStart.setHours(dateStart.getHours() + 7);
+                dateEnd.setHours(dateEnd.getHours() + 7);
+
+                console.log(dateStart, dateEnd);
+                requirementDate2 = {
+                    date: {
+                        [Op.between]: [dateStart,dateEnd]
+                    }
+                }
             }
             const { count, rows } = await db.Appointment.findAndCountAll({
                 include: [
@@ -429,7 +467,9 @@ let getAppointmentForUserByUserId = (id, key, page, limit, status, day) => {
                                 { Patientname: db.sequelize.where(db.sequelize.fn('concat', db.sequelize.col('patient.user.firsname'), " ", db.sequelize.col('patient.user.lastname')), 'LIKE', '%' + key + '%') },
                                 { Doctorname: db.sequelize.where(db.sequelize.fn('concat', db.sequelize.col('schedule.doctor.user.firsname'), " ", db.sequelize.col('schedule.doctor.user.lastname')), 'LIKE', '%' + key + '%') },
                             ]
-                        }]
+                        },
+                        requirementDate2
+                    ]
                 },
                 order: [
                     ['date', 'DESC']
@@ -536,7 +576,7 @@ let ChangeStatusAppointmentToDone = (id) => {
             // Thong bao cho bac si
             notificationService.CreateNotification(appointment.id, appointment.schedule.doctor.user.id, message);
             notificationService.deleteNotificationOfUserLastWeek(appointment.schedule.doctor.user.id);
-
+            await emailService.sendNotification(dataSend);
             let dataSend2 = {};
             dataSend.message = message;
             dataSend.receiverEmail = appointment.schedule.doctor.user.email;
@@ -595,11 +635,7 @@ let CanCelAppointment = (id, userId) => {
                 resolve(resData);
                 return;
             }
-            let [statusCancel, created] = await db.Status.findOrCreate({
-                where: { name: "CANCEL" }, raw: true
-            });
-            appointment.status_id = statusCancel.id;
-            await appointment.save();
+            await appointment.destroy();
             resData.errCode = 0;
             resData.message = "OK";
             resolve(resData);
