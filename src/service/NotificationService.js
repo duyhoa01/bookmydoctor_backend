@@ -7,7 +7,7 @@ let CreateNotification = (appointmentId, user_id, message) => {
                 appointment_id: appointmentId,
                 user_id: user_id,
                 message: message,
-                status: 0
+                status: 0,
             })
             resolve(notification)
         } catch (err) {
@@ -25,7 +25,10 @@ let GetNotificationForUserByUserId = (id) => {
                     attributes: ['id'],
                     as: 'user',
                     where: {id: id}
-                }
+                },
+                order: [
+                    ['id', 'DESC']
+                ],
             })
             resolve(notification);
         } catch (err) {

@@ -26,10 +26,11 @@ let getAllAppointments = async(req, res) => {
     } else{
         key= req.query.key
     }
+    let date = req.query.date === undefined ? '' : req.query.date;
     let pageNumber = req.query.page === undefined ? 0: req.query.page;
     let limit = req.query.limit === undefined ? 10 : req.query.limit;
     let status =req.query.status === undefined ? '' : req.query.status; 
-    let resData = await appointmentService.getAllAppointments(key, pageNumber, limit, status);
+    let resData = await appointmentService.getAllAppointments(key, pageNumber, limit, status, date);
 
     let page ={};
     page.size= resData.size;
@@ -85,12 +86,14 @@ let getAppointmentForUserByUserId = async(req, res) => {
         })
     }
     let key = req.query.key === undefined ? "" : req.query.key;
+    let date = req.query.date === undefined ? '' : req.query.date;
+
 
     let pageNumber = req.query.page === undefined ? 0: req.query.page;
     let limit = req.query.limit === undefined ? 10 : req.query.limit;
     let status =req.query.status === undefined ? '' : req.query.status; 
     let day = req.query.day === undefined ? undefined : req.query.day;
-    let resData = await appointmentService.getAppointmentForUserByUserId(id, key, pageNumber, limit, status, day);
+    let resData = await appointmentService.getAppointmentForUserByUserId(id, key, pageNumber, limit, status, day, date);
     let page ={};
     page.size= resData.size;
     page.totalPages= resData.totalPages;
