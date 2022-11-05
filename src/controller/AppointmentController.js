@@ -135,35 +135,6 @@ let acceptAppointment = async(req, res) => {
         })
     }
 }
-let ChangeStatusAppointmentToDone = async(req, res) => {
-    let id = req.params.id;
-    if(!id) {
-        return res.status(400).json({
-            message: 'Thiếu id cuộc hẹn'
-        })
-    }
-    let resData = await appointmentService.ChangeStatusAppointmentToDone(id);
-    if(resData.errCode === 1) {
-        return res.status(404).json({
-            message: resData.message
-        })
-    }
-    if(resData.errCode === 2) {
-        return res.status(400).json({
-            message: resData.message
-        })
-    }
-    if(resData.errCode === 3) {
-        return res.status(400).json({
-            message: resData.message
-        })
-    }
-    if(resData.errCode === 0) {
-        return res.status(200).json({
-            message: resData.message
-        })
-    }
-}
 let CanCelAppointment = async(req, res) => {
     let id = req.params.id;
     if(!id) {
@@ -212,14 +183,62 @@ let deleteAppointment = async(req, res) => {
         })
     }
 }
+let ReportAppointment = async(req, res) => {
+    let id = req.params.id;
+    if(!id) {
+        return res.status(400).json({
+            message: 'Thiếu id cuộc hẹn'
+        })
+    }
+    let resData = await appointmentService.ReportAppointment(id, req.userID);
+    if(resData.errCode === 1) {
+        return res.status(404).json({
+            message: resData.message
+        })
+    }
+    if(resData.errCode === 2) {
+        return res.status(400).json({
+            message: resData.message
+        })
+    }
+    if(resData.errCode === 0) {
+        return res.status(200).json({
+            message: resData.message
+        })
+    }
+}
+let AdminHandlesAppointment = async(req, res) => {
+    let id = req.params.id;
+    if(!id) {
+        return res.status(400).json({
+            message: 'Thiếu id cuộc hẹn'
+        })
+    }
+    let violator = req.body.violator;
+    if(!violator) {
+        return res.status(400).json({message: 'Thiếu tham số người vi phạm'});
+    }
+    let resData = await appointmentService.AdminHandlesAppointment(id, violator);
+    if(resData.errCode === 1) {
+        return res.status(404).json({
+            message: resData.message
+        })
+    }
+    if(resData.errCode === 0) {
+        return res.status(200).json({
+            message: resData.message
+        })
+    }
+}
 module.exports = {
     createAppointment: createAppointment,
     getAllAppointments: getAllAppointments,
     getAppointmentById: getAppointmentById,
     acceptAppointment: acceptAppointment,
     getAppointmentForUserByUserId: getAppointmentForUserByUserId,
-    ChangeStatusAppointmentToDone: ChangeStatusAppointmentToDone,
     CanCelAppointment: CanCelAppointment,
     deleteAppointment: deleteAppointment,
+    ReportAppointment: ReportAppointment,
+    AdminHandlesAppointment: AdminHandlesAppointment
 
 }

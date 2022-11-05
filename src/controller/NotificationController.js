@@ -7,9 +7,12 @@ let ChangeStatusNotifications = async(req, res) => {
             errMessage: "Thiếu tham số id"
         })
     }
-    let check = await notificationService.ChangeStatusNotifications(id);
-    if(check){
-        return res.status(200).json({message: 'OK'});
+    let resData = await notificationService.ChangeStatusNotifications(id, req.userID);
+    if(resData.errCode === 0){
+        return res.status(200).json({message: resData.message});
+    }
+    if(resData.errCode === 1){
+        return res.status(200).json({message: resData.message});
     }
 }
 let GetNotificationForUserByUserId = async(req, res) => {
