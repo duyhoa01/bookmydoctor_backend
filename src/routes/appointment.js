@@ -7,8 +7,10 @@ router.get('/', authJwt.authenToken, authJwt.isAdmin, appointmentController.getA
 router.get('/:id',authJwt.authenToken, appointmentController.getAppointmentById);
 router.put('/confirm/:id/', authJwt.authenToken, authJwt.isDoctor, appointmentController.acceptAppointment);
 router.get('/user/:id/', authJwt.authenToken, appointmentController.getAppointmentForUserByUserId);
-router.put('/done/:id/', authJwt.authenToken, authJwt.isAdmin, appointmentController.ChangeStatusAppointmentToDone);
+router.put('/violate/:id/', authJwt.authenToken, authJwt.isAdmin, appointmentController.AdminHandlesAppointment);
 router.put('/cancel/:id/', authJwt.authenToken, authJwt.isPatient, appointmentController.CanCelAppointment);
 router.delete('/:id/', authJwt.authenToken, authJwt.isAdmin, appointmentController.deleteAppointment);
+router.put('/report/:id/', authJwt.authenToken, appointmentController.ReportAppointment);
+
 
 module.exports = router;

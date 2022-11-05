@@ -1,7 +1,7 @@
-const db= require('../models');
+const db = require('../models');
 const { Op, where } = require('sequelize');
 let CreateNotification = (appointmentId, user_id, message) => {
-    return new Promise(async(resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         try {
             let notification = await db.Notification.create({
                 appointment_id: appointmentId,
@@ -16,7 +16,7 @@ let CreateNotification = (appointmentId, user_id, message) => {
     });
 }
 let GetNotificationForUserByUserId = (id) => {
-    return new Promise(async(resolve, reject) =>{
+    return new Promise(async (resolve, reject) => {
         try {
             let notification = await db.Notification.findAll({
                 include: {
@@ -24,7 +24,7 @@ let GetNotificationForUserByUserId = (id) => {
                     required: true,
                     attributes: ['id'],
                     as: 'user',
-                    where: {id: id}
+                    where: { id: id }
                 },
                 order: [
                     ['id', 'DESC']
@@ -37,7 +37,7 @@ let GetNotificationForUserByUserId = (id) => {
     })
 }
 let deleteNotificationOfUserLastWeek = (userId) => {
-    return new Promise(async(resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         try {
             let date = new Date();
             date.setDate(date.getDate() - 7);
@@ -46,9 +46,9 @@ let deleteNotificationOfUserLastWeek = (userId) => {
                     model: db.User,
                     required: true,
                     as: 'user',
-                    where: {id: userId}
+                    where: { id: userId }
                 },
-                where: {createdAt: {[Op.lt]: date}}
+                where: { createdAt: { [Op.lt]: date } }
             })
             resolve(true);
         } catch (err) {
@@ -56,14 +56,25 @@ let deleteNotificationOfUserLastWeek = (userId) => {
         }
     })
 }
-let ChangeStatusNotifications = (id) => {
-    return new Promise(async(resolve, reject) => {
+let ChangeStatusNotifications = (id, userID) => {
+    return new Promise(async (resolve, reject) => {
         try {
-            await db.Notification.update({
+            let resData = {};
+            let notification = await db.Notification.update({
                 status: 1,
-                where: {id: id}
-            })
-            resolve(true);
+            },
+                {
+                    where: { id: id, user_id: userID }
+                }
+            )
+            if (!notification) {
+                resData.errCode = 1;
+                resData.message = 'Không tồn tại thông báo có id này';
+            }
+            resData.errCode = 0;
+            resData.message = 'OK';
+
+            resolve(resData);
         } catch (err) {
             reject(err);
         }

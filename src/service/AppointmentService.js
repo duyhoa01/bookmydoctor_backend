@@ -67,6 +67,10 @@ let createAppointment = (data) => {
 let getAllAppointments = (key, page, limit, status, date_string) => {
     return new Promise(async (resolve, reject) => {
         try {
+            // Xoa cac cuoc hen bi tre va xu ly chuyen trang thai cac cuoc hen sang done
+            await DeleteAppointmentStatusNew();
+            await ChangeStatusAppointmentToDone();
+            ////////////////////////////////
             page = page - 0;
             limit = limit - 0;
             let offset = page * limit;
@@ -80,13 +84,13 @@ let getAllAppointments = (key, page, limit, status, date_string) => {
                 let dateEnd = new Date(date_string);
                 dateEnd.setDate(dateStart.getDate() + 1);
                 // Chuyen sang mui gio +7
-                dateStart.setHours(dateStart.getHours() + 7);
-                dateEnd.setHours(dateEnd.getHours() + 7);
+                dateStart.setHours(dateStart.getHours() - 7);
+                dateEnd.setHours(dateEnd.getHours() - 7);
 
                 console.log(dateStart, dateEnd);
                 requirementDate = {
                     date: {
-                        [Op.between]: [dateStart,dateEnd]
+                        [Op.between]: [dateStart, dateEnd]
                     }
                 }
             }
@@ -322,7 +326,7 @@ let acceptAppointment = (id, userId) => {
             let dataSend = {};
             dataSend.message = message;
             dataSend.receiverEmail = appointment.patient.user.email;
-            emailService.sendNotification(dataSend)
+            emailService.sendNotification(dataSend);
             // Gui thong bao cuoc hen bi tu choi cho benh nhan
             let appointments = await db.Appointment.findAll({
                 include: [
@@ -345,17 +349,14 @@ let acceptAppointment = (id, userId) => {
                     schedule_id: appointment.schedule_id
                 }
             })
-            let message2 = `Bác sĩ ${appointment.schedule.doctor.user.firsname} ${appointment.schedule.doctor.user.lastname} từ chối lịch khám ngày ${appointment.date}`
-            appointments.map(a => {
-                console.log(a.patient.user.email);
-                let dataSend = {
-                    receiverEmail: a.patient.user.email,
-                    message: message2
-                }
-                notificationService.CreateNotification(appointment.id, a.patient.user.id, message2);
-                notificationService.deleteNotificationOfUserLastWeek(a.patient.user.id);
-
-            });
+            if (appointments.length !== 0) {
+                let message2 = `Bác sĩ ${appointment.schedule.doctor.user.firsname} ${appointment.schedule.doctor.user.lastname} từ chối lịch khám ngày ${appointment.date}`
+                appointments.map(a => {
+                    notificationService.CreateNotification(appointment.id, a.patient.user.id, message2);
+                    notificationService.deleteNotificationOfUserLastWeek(a.patient.user.id);
+    
+                });
+            }
             // xoa appointment khong duoc chap nhan
             await db.Appointment.destroy({
                 where: {
@@ -374,6 +375,10 @@ let acceptAppointment = (id, userId) => {
 let getAppointmentForUserByUserId = (id, key, page, limit, status, day, date_string) => {
     return new Promise(async (resolve, reject) => {
         try {
+            // Xoa cac cuoc hen bi tre va xu ly chuyen trang thai cac cuoc hen sang done
+            await DeleteAppointmentStatusNew();
+            await ChangeStatusAppointmentToDone();
+            ////////////////////////////////
             id = id - 0;
             page = page - 0;
             limit = limit - 0;
@@ -399,13 +404,13 @@ let getAppointmentForUserByUserId = (id, key, page, limit, status, day, date_str
                 let dateEnd = new Date(date_string);
                 dateEnd.setDate(dateStart.getDate() + 1);
                 // Chuyen sang mui gio +7
-                dateStart.setHours(dateStart.getHours() + 7);
-                dateEnd.setHours(dateEnd.getHours() + 7);
+                dateStart.setHours(dateStart.getHours() - 7);
+                dateEnd.setHours(dateEnd.getHours() - 7);
 
                 console.log(dateStart, dateEnd);
                 requirementDate2 = {
                     date: {
-                        [Op.between]: [dateStart,dateEnd]
+                        [Op.between]: [dateStart, dateEnd]
                     }
                 }
             }
@@ -491,17 +496,43 @@ let getAppointmentForUserByUserId = (id, key, page, limit, status, day, date_str
         }
     })
 }
-let ChangeStatusAppointmentToDone = (id) => {
+let ChangeStatusAppointmentToDone = () => {
     return new Promise(async (resolve, reject) => {
         try {
-            let resData = {};
-            let appointment = await db.Appointment.findByPk(id, {
+            let [statusDone, created] = await db.Status.findOrCreate({
+                where: { name: "DONE" }, raw: true
+            });
+            let [statusConfirmed, created2] = await db.Status.findOrCreate({
+                where: { name: "CONFIRMED" }, raw: true
+            });
+
+            let datenow = new Date();
+            await db.Appointment.update(
+                {
+                    status_id: statusDone.id
+                },
+                {
+                    where: {
+                        date: { [Op.lte]: datenow },
+                        status_id: statusConfirmed.id
+                    }
+                }
+            );
+            resolve(true);
+        } catch (e) {
+            reject(e);
+        }
+    });
+}
+let DeleteAppointmentStatusNew = () => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let [statusNew, created] = await db.Status.findOrCreate({
+                where: { name: "NEW" }, raw: true
+            });
+            let datenow = new Date();
+            let appointments = await db.Appointment.findAll({
                 include: [
-                    {
-                        model: db.Status,
-                        required: true,
-                        as: 'status'
-                    },
                     {
                         model: db.Patient,
                         required: true,
@@ -515,76 +546,33 @@ let ChangeStatusAppointmentToDone = (id) => {
                                 exclude: ['password', 'token']
                             },
                         },
-                    },
-
-                    {
-                        model: db.Schedule,
-                        required: true,
-                        as: 'schedule',
-                        include:
-                        {
-                            model: db.Doctor,
-                            required: true,
-                            as: 'doctor',
-                            include:
-                            {
-                                model: db.User,
-                                required: true,
-                                as: 'user',
-                                attributes: {
-                                    exclude: ['password', 'token']
-                                },
-                            }
-                        }
-                    },]
-            });
-            if (!appointment) {
-                resData.errCode = 1;
-                resData.message = 'Cuộc hẹn không tồn tại';
-                resolve(resData);
-                return;
+                    },],
+                where: {
+                    date: { [Op.lte]: datenow },
+                    status_id: statusNew.id
+                },
+                raw: true,
+                nest: true
+            })
+            if (appointments.length !== 0){
+                console.log(appointments);
+                let appointment = appointments[0];
+                console.log(appointment);
+                let message2 = `Bác sĩ đã từ chối lịch khám ngày ${appointment.date}`;
+                appointments.map(a => {
+                    notificationService.CreateNotification(appointment.id, a.patient.user.id, message2);
+                    notificationService.deleteNotificationOfUserLastWeek(a.patient.user.id);
+    
+                });
             }
-            if (appointment.status.name !== "CONFIRMED") {
-                resData.errCode = 2;
-                resData.message = 'Không thể xác thực hoàn thành cuộc hẹn khi trạng thái cuộc hẹn khác CONFIRMED';
-                resolve(resData);
-                return;
+            await db.Appointment.destroy({
+                where: {
+                    date: { [Op.lte]: datenow },
+                    status_id: statusNew.id
+                }
             }
-
-            let datenow = new Date();
-            let dateAppointment = new Date((appointment.date).toString());
-            if (dateAppointment > datenow) {
-                resData.errCode = 3;
-                resData.message = 'Thời gian cuộc hẹn chưa kết thúc';
-                resolve(resData);
-                return;
-            }
-            let [status, created] = await db.Status.findOrCreate({
-                where: { name: "DONE" }, raw: true
-            });
-            appointment.status_id = status.id;
-            await appointment.save();
-            // Gui thong bao cuoc hen hoan thanh cho benh nhan va bac si
-            // Thong bao cho benh nhan
-            let message = `Admin đã xác thực buổi khám ngày ${appointment.date} đã hoàn thành`
-            notificationService.CreateNotification(appointment.id, appointment.patient.user.id, message);
-            notificationService.deleteNotificationOfUserLastWeek(appointment.patient.user.id);
-            let dataSend = {};
-            dataSend.message = message;
-            dataSend.receiverEmail = appointment.patient.user.email;
-            // await emailService.sendNotification(dataSend);
-            // Thong bao cho bac si
-            notificationService.CreateNotification(appointment.id, appointment.schedule.doctor.user.id, message);
-            notificationService.deleteNotificationOfUserLastWeek(appointment.schedule.doctor.user.id);
-            await emailService.sendNotification(dataSend);
-            let dataSend2 = {};
-            dataSend.message = message;
-            dataSend.receiverEmail = appointment.schedule.doctor.user.email;
-            // await emailService.sendNotification(dataSend2);
-
-            resData.errCode = 0;
-            resData.message = 'OK';
-            resolve(resData);
+            );
+            resolve(true);
         } catch (e) {
             reject(e);
         }
@@ -664,6 +652,181 @@ let deleteAppointment = (id) => {
         }
     })
 }
+let ReportAppointment = (id, user_id) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let resData = {};
+            let appointment = await db.Appointment.findByPk(id, {
+                include: [
+                    {
+                        model: db.Status,
+                        required: true,
+                        as: 'status'
+                    },
+                    {
+                        model: db.Patient,
+                        required: true,
+                        as: 'patient',
+                        include:
+                        {
+                            model: db.User,
+                            required: true,
+                            as: 'user',
+                            attributes: {
+                                exclude: ['password', 'token']
+                            },
+                        },
+                    },
+
+                    {
+                        model: db.Schedule,
+                        required: true,
+                        as: 'schedule',
+                        include:
+                        {
+                            model: db.Doctor,
+                            required: true,
+                            as: 'doctor',
+                            include:
+                            {
+                                model: db.User,
+                                required: true,
+                                as: 'user',
+                                attributes: {
+                                    exclude: ['password', 'token']
+                                },
+                                where: { id: user_id }
+                            }
+                        }
+                    },]
+            });
+            if (!appointment) {
+                resData.errCode = 1;
+                resData.message = 'Cuộc hẹn không tồn tại';
+                resolve(resData);
+                return;
+            }
+            if (appointment.status.name !== "DONE") {
+                resData.errCode = 2;
+                resData.message = 'Không thể báo cáo cuộc hẹn khi trạng thái cuộc hẹn khác DONE';
+                resolve(resData);
+                return;
+            }
+
+            let [status, created] = await db.Status.findOrCreate({
+                where: { name: "REPORT" }, raw: true
+            });
+            appointment.status_id = status.id;
+            await appointment.save();
+            // Gui thong bao lich kham bi bao cao cho benh nhan va bac si
+            // Thong bao cho benh nhan
+            let message = `Bạn đã báo bị báo cáo không đến khám theo lịch ngày ${appointment.date}, admin đang tiến hành xác thực`;
+            notificationService.CreateNotification(appointment.id, appointment.patient.user.id, message);
+            notificationService.deleteNotificationOfUserLastWeek(appointment.patient.user.id);
+            // Thong bao cho bac si
+            let message2 = `Bạn đã báo cáo thành công bệnh nhân ${appointment.patient.user.firsname} ${appointment.patient.user.lastname} không đến khám ngày ${appointment.date}, admin đang tiến hành xử lý`;
+            notificationService.CreateNotification(appointment.id, appointment.schedule.doctor.user.id, message2);
+            notificationService.deleteNotificationOfUserLastWeek(appointment.schedule.doctor.user.id);
+
+            resData.errCode = 0;
+            resData.message = 'OK';
+            resolve(resData);
+        } catch (e) {
+            reject(e);
+        }
+    });
+}
+let AdminHandlesAppointment = (id, violator, violator_user_id) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let resData = {};
+            let appointment = await db.Appointment.findByPk(id, {
+                include: [
+                    {
+                        model: db.Patient,
+                        required: true,
+                        as: 'patient',
+                        include:
+                        {
+                            model: db.User,
+                            required: true,
+                            as: 'user',
+                            attributes: {
+                                exclude: ['password', 'token']
+                            },
+                        },
+                    },
+
+                    {
+                        model: db.Schedule,
+                        required: true,
+                        as: 'schedule',
+                        include:
+                        {
+                            model: db.Doctor,
+                            required: true,
+                            as: 'doctor',
+                            include:
+                            {
+                                model: db.User,
+                                required: true,
+                                as: 'user',
+                                attributes: {
+                                    exclude: ['password', 'token']
+                                },
+                            }
+                        },
+                    },
+                    {
+                        model: db.Status,
+                        required: true,
+                        as: 'status',
+                        where: { name: "REPORT" }
+                    }
+                ]
+            });
+            if (!appointment) {
+                resData.errCode = 1;
+                resData.message = 'Cuộc hẹn không tồn tại';
+                resolve(resData);
+                return;
+            }
+
+            let [statusDONE, created] = await db.Status.findOrCreate({
+                where: { name: "DONE" }, raw: true
+            });
+            let [statusVIOLATE, created2] = await db.Status.findOrCreate({
+                where: { name: "PATIENT VIOLATE" }, raw: true
+            });
+            let message = '';
+            if (violator == 'patient') {
+                appointment.status_id = statusVIOLATE.id;
+                messageForPatient = `Bạn đã không đến khám theo đúng lịch khám ngày ${appointment.date}, số lần vi phạm của bạn đã tăng lên, quá 2 lần sẽ bị khóa tài khoản`;
+                messageForDoctor = `Báo cáo bệnh nhân không đến khám ngày ${appointment.date} đã được admin xác nhận chính xác, tài khoản bệnh nhân ${appointment.patient.user.firsname} ${appointment.patient.user.lastname} đã bị cảnh cáo vi phạm`;
+            }
+            else {
+                appointment.status_id = statusDONE.id;
+                messageForDoctor = `Báo cáo bệnh nhân ${appointment.patient.user.firsname} ${appointment.patient.user.lastname} không đến khám của bạn ngày ${appointment.date} là không đúng, số lần vi phạm của bạn đã tăng lên, quá 2 lần sẽ bị khóa tài khoản`;
+                messageForPatient = `Bạn đã đến khám theo đúng lịch khám ngày ${appointment.date}, bác sĩ ${appointment.schedule.doctor.user.firsname} ${appointment.schedule.doctor.user.lastname} đã bị cảnh cáo vi phạm`;
+            }
+
+            await appointment.save();
+            // Gui thong bao ket qua xu ly lich kham bi bao cao cho benh nhan va bac si
+            // Thong bao cho benh nhan
+            notificationService.CreateNotification(appointment.id, appointment.patient.user.id, messageForPatient);
+            notificationService.deleteNotificationOfUserLastWeek(appointment.patient.user.id);
+            // Thong bao cho bac si
+            notificationService.CreateNotification(appointment.id, appointment.schedule.doctor.user.id, messageForDoctor);
+            notificationService.deleteNotificationOfUserLastWeek(appointment.schedule.doctor.user.id);
+            resData.errCode = 0;
+            resData.errCode = 0;
+            resData.message = 'OK';
+            resolve(resData);
+        } catch (e) {
+            reject(e);
+        }
+    });
+}
 module.exports = {
     createAppointment: createAppointment,
     getAllAppointments: getAllAppointments,
@@ -672,5 +835,7 @@ module.exports = {
     getAppointmentForUserByUserId: getAppointmentForUserByUserId,
     ChangeStatusAppointmentToDone: ChangeStatusAppointmentToDone,
     CanCelAppointment: CanCelAppointment,
-    deleteAppointment: deleteAppointment
+    deleteAppointment: deleteAppointment,
+    ReportAppointment: ReportAppointment,
+    AdminHandlesAppointment: AdminHandlesAppointment
 }
