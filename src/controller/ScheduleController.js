@@ -89,9 +89,12 @@ let deleteSchedule = async (req,res) =>{
 }
 
 let addScheduleMultiDate =  async (req,res) =>{
-    console.log(req.body)
     resData = await scheduleService.addScheduleMultiDate(req.body);
-    return res.status(200).json(resData);
+    if(resData.errCode == 2){
+        return res.status(400).json(resData)
+    } else {
+        return res.status(200).json(resData)
+    }
 }
 
 module.exports = {
