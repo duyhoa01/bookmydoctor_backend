@@ -1,4 +1,4 @@
-const { Op, where } = require('sequelize');
+const { Op, where, TIME } = require('sequelize');
 const e = require('express');
 const db= require('../models');
 
@@ -329,11 +329,72 @@ let deleteSchedule = async (data) =>{
     })
 }
 
+let addScheduleMultiDate =  async (data)=>{
+    return new Promise(async(resolve, reject) => {
+        try{
+            var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+            beginCop = data.beginDate;
+            endCop = data.endDate;
+            data.beginDate= Date.parse(data.beginDate)
+            data.endDate = Date.parse(data.endDate)
+            if(data.endDate<=data.beginDate){
+                return resolve({
+                    errCode: 2,
+                    message:'ngày bắt đầu phải trước ngày kết thúc'
+                })
+            }
+            let numberDate = (data.endDate - data.beginDate)/(60000*60*24);
+            let arr = []
+            let k = 0;
+            for(let i =0 ; i< numberDate ; i++){
+                let date = data.beginDate + i*(60000*60*24);
+                let  weekday =days[(new Date(date)).getDay()]
+                if(data.weekdays.includes(weekday)){
+                    let schedules = data.schedules
+                    for(let s of schedules){
+                        let list = s.split('-')
+                        let timesBegin = list[0].split(':');
+                        let timesEnd = list[1].split(':');
+                        let begin= new Date(date);
+                        begin = new Date(begin.getTime()+ 60000*60*timesBegin[0]+ 60000* timesBegin[1])
+                        let end = new Date(date)
+                        end = new Date(end.getTime()+ 60000*60*timesEnd[0]+ 60000* timesEnd[1])
+                        let input = {
+                            begin: begin,
+                            end: end,
+                            doctor_id: data.doctor_id
+                        }
+                        if(await checkOverlapDateOfCreateSchedule(input,0)==false){
+                            const schedule = await db.Schedule.create({
+                                begin:begin,
+                                end:end,
+                                doctor_id: data.doctor_id,
+                                cost:data.cost,
+                                status:false
+                            })
+                            arr[k]=schedule;
+                            k++;
+                        }
+                    }
+                }
+            }
+            return resolve({
+                errCode:0,
+                message: arr
+            })
+        } catch(e){
+            reject(e)
+        }
+    });
+}
+
 module.exports = {
     addSchedule,
     getListSchedule,
     getScheduleOfDoctor,
     updateSchedule,
     getScheduleById,
-    deleteSchedule
+    deleteSchedule,
+    addScheduleMultiDate
 }
