@@ -4,6 +4,7 @@ const patientService = require('../service/PatientService');
 const { Op, where } = require('sequelize');
 const emailService = require('../service/emailService');
 const notificationService = require('../service/NotificationService');
+const violationService = require('../service/ViolationService');
 
 
 let createAppointment = (data) => {
@@ -736,7 +737,7 @@ let ReportAppointment = (id, user_id) => {
         }
     });
 }
-let AdminHandlesAppointment = (id, violator, violator_user_id) => {
+let AdminHandlesAppointment = (id, violator) => {
     return new Promise(async (resolve, reject) => {
         try {
             let resData = {};
@@ -798,15 +799,18 @@ let AdminHandlesAppointment = (id, violator, violator_user_id) => {
             let [statusVIOLATE, created2] = await db.Status.findOrCreate({
                 where: { name: "PATIENT VIOLATE" }, raw: true
             });
-            let message = '';
             if (violator == 'patient') {
                 appointment.status_id = statusVIOLATE.id;
-                messageForPatient = `Bạn đã không đến khám theo đúng lịch khám ngày ${appointment.date}, số lần vi phạm của bạn đã tăng lên, quá 2 lần sẽ bị khóa tài khoản`;
+                let message = `Bạn đã không đến khám theo đúng lịch khám ngày ${appointment.date}`;
+                let numberOfViolate = await violationService.HandleViolation(appointment.patient.user.id, message);
+                messageForPatient = `Bạn đã không đến khám theo đúng lịch khám ngày ${appointment.date}, số lần vi phạm của bạn đã tăng lên ${numberOfViolate}, quá 2 lần sẽ bị khóa tài khoản`;
                 messageForDoctor = `Báo cáo bệnh nhân không đến khám ngày ${appointment.date} đã được admin xác nhận chính xác, tài khoản bệnh nhân ${appointment.patient.user.firsname} ${appointment.patient.user.lastname} đã bị cảnh cáo vi phạm`;
             }
             else {
                 appointment.status_id = statusDONE.id;
-                messageForDoctor = `Báo cáo bệnh nhân ${appointment.patient.user.firsname} ${appointment.patient.user.lastname} không đến khám của bạn ngày ${appointment.date} là không đúng, số lần vi phạm của bạn đã tăng lên, quá 2 lần sẽ bị khóa tài khoản`;
+                let message = `Báo cáo bệnh nhân ${appointment.patient.user.firsname} ${appointment.patient.user.lastname} không đến khám của bạn ngày ${appointment.date} là không đúng`;
+                let numberOfViolate = await violationService.HandleViolation(appointment.schedule.doctor.user.id, message);
+                messageForDoctor = `Báo cáo bệnh nhân ${appointment.patient.user.firsname} ${appointment.patient.user.lastname} không đến khám của bạn ngày ${appointment.date} là không đúng, số lần vi phạm của bạn đã tăng lên ${numberOfViolate}, quá 2 lần sẽ bị khóa tài khoản`;
                 messageForPatient = `Bạn đã đến khám theo đúng lịch khám ngày ${appointment.date}, bác sĩ ${appointment.schedule.doctor.user.firsname} ${appointment.schedule.doctor.user.lastname} đã bị cảnh cáo vi phạm`;
             }
 
