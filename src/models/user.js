@@ -69,6 +69,10 @@ module.exports = (sequelize, DataTypes) => {
     token: {
       type:DataTypes.STRING,
       allowNull:true
+    },
+    violation: {
+      type:DataTypes.INTEGER,
+      allowNull:true
     }
   }, {
     sequelize,

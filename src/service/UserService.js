@@ -81,7 +81,8 @@ let createNewUser = async (data, roleName) => {
                         address: data.address,
                         status: data.status,
                         role_id: role.id,
-                        token: id
+                        token: id,
+                        violation: 0
                     }
                 )
 
@@ -160,6 +161,7 @@ let AdminCreateUser = (data, roleName) => {
                         address: data.address,
                         status: 1,
                         role_id: role.id,
+                        violation: 0
                     },
                     
                 )
