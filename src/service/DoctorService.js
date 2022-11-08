@@ -144,7 +144,8 @@ let createDoctor = (data) => {
                 const doctor = await db.Doctor.create(
                     {
                         description: data.description,
-                        rate: data.rate,
+                        rate: 0,
+                        numberOfReviews: 0,
                         user_id: userData.user.id,
                         hospital_id: data.hospital_id,
                         clinic_id: data.clinic_id,
@@ -345,6 +346,24 @@ let getDoctorByHospital = (id, key, page, limit) => {
         }
     });
 }
+let RatingDoctor = (id, scores, scoresOld) => {
+    return new Promise(async(resolve, reject) => {
+        try {
+            let doctor = await db.Doctor.findByPk(id);
+            if (!scoresOld) {
+                // if (doctor.numberOfReviews === null) doctor.numberOfReviews = 0;
+                doctor.rate = (doctor.rate*doctor.numberOfReviews + scores)/(doctor.numberOfReviews + 1);
+                doctor.numberOfReviews++;
+            } else {
+                doctor.rate = (doctor.rate*doctor.numberOfReviews - scoresOld + scores)/(doctor.numberOfReviews);
+            }
+            await doctor.save();
+            resolve(true);
+        } catch (e) {
+            reject(e);
+        }
+    })
+}
 module.exports = {
     getAllDoctor: getAllDoctor,
     getDoctorById: getDoctorById,
@@ -353,4 +372,5 @@ module.exports = {
     deleteDoctor: deleteDoctor,
     getDoctorBySpecialty: getDoctorBySpecialty,
     getDoctorByHospital: getDoctorByHospital,
+    RatingDoctor
 }

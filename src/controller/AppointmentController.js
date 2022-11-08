@@ -26,11 +26,12 @@ let getAllAppointments = async(req, res) => {
     } else{
         key= req.query.key
     }
+    let rate = req.query.rate === undefined ? 0 : req.query.rate;
     let date = req.query.date === undefined ? '' : req.query.date;
     let pageNumber = req.query.page === undefined ? 0: req.query.page;
     let limit = req.query.limit === undefined ? 10 : req.query.limit;
     let status =req.query.status === undefined ? '' : req.query.status; 
-    let resData = await appointmentService.getAllAppointments(key, pageNumber, limit, status, date);
+    let resData = await appointmentService.getAllAppointments(key, pageNumber, limit, status, date, rate);
 
     let page ={};
     page.size= resData.size;
@@ -86,6 +87,7 @@ let getAppointmentForUserByUserId = async(req, res) => {
         })
     }
     let key = req.query.key === undefined ? "" : req.query.key;
+    let rate = req.query.rate === undefined ? '' : req.query.rate;
     let date = req.query.date === undefined ? '' : req.query.date;
 
 
@@ -93,7 +95,7 @@ let getAppointmentForUserByUserId = async(req, res) => {
     let limit = req.query.limit === undefined ? 10 : req.query.limit;
     let status =req.query.status === undefined ? '' : req.query.status; 
     let day = req.query.day === undefined ? undefined : req.query.day;
-    let resData = await appointmentService.getAppointmentForUserByUserId(id, key, pageNumber, limit, status, day, date);
+    let resData = await appointmentService.getAppointmentForUserByUserId(id, key, pageNumber, limit, status, day, date, rate);
     let page ={};
     page.size= resData.size;
     page.totalPages= resData.totalPages;
@@ -230,6 +232,42 @@ let AdminHandlesAppointment = async(req, res) => {
         })
     }
 }
+let PatientRatingAppointment = async(req, res) => {
+    let id = req.params.id;
+    if(!id) {
+        return res.status(400).json({
+            message: 'Thiếu id cuộc hẹn'
+        })
+    }
+    let scores = req.body.scores;
+    scores = scores - 0;
+    if (!scores) {
+        return res.status(400).json({
+            message: 'Thiếu tham số điểm đánh giá'
+        })
+    }
+    if (!Number.isInteger(scores)) {
+        return res.status(400).json({
+            message: 'Điểm đánh giá phải là số tự nhiên từ [1,5]'
+        })
+    }
+    if (scores < 1 || scores > 5) {
+        return res.status(400).json({
+            message: 'Điểm đánh giá phải là số tự nhiên từ [1,5]'
+        })
+    }
+    let resData = await appointmentService.PatientRatingAppointment(req.userID, id, scores);
+    if(resData.errCode === 1) {
+        return res.status(404).json({
+            message: resData.message
+        })
+    }
+    if(resData.errCode === 0) {
+        return res.status(200).json({
+            message: resData.message
+        })
+    }
+}
 module.exports = {
     createAppointment: createAppointment,
     getAllAppointments: getAllAppointments,
@@ -239,6 +277,7 @@ module.exports = {
     CanCelAppointment: CanCelAppointment,
     deleteAppointment: deleteAppointment,
     ReportAppointment: ReportAppointment,
-    AdminHandlesAppointment: AdminHandlesAppointment
+    AdminHandlesAppointment: AdminHandlesAppointment,
+    PatientRatingAppointment
 
 }

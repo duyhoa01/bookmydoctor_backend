@@ -11,6 +11,7 @@ router.put('/violate/:id/', authJwt.authenToken, authJwt.isAdmin, appointmentCon
 router.put('/cancel/:id/', authJwt.authenToken, authJwt.isPatient, appointmentController.CanCelAppointment);
 router.delete('/:id/', authJwt.authenToken, authJwt.isAdmin, appointmentController.deleteAppointment);
 router.put('/report/:id/', authJwt.authenToken, appointmentController.ReportAppointment);
+router.put('/rate/:id/', authJwt.authenToken, authJwt.isPatient, appointmentController.PatientRatingAppointment);
 
 
 module.exports = router;
