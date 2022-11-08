@@ -1,10 +1,11 @@
 const db = require('../models/index');
-const ScheduleServices = require('../service/ScheduleService');
-const patientService = require('../service/PatientService');
+const ScheduleServices = require('./ScheduleService');
+const patientService = require('./PatientService');
 const { Op, where } = require('sequelize');
-const emailService = require('../service/emailService');
-const notificationService = require('../service/NotificationService');
-const violationService = require('../service/ViolationService');
+const emailService = require('./emailService');
+const notificationService = require('./NotificationService');
+const violationService = require('./ViolationService');
+const doctorService = require('./DoctorService');
 
 
 let createAppointment = (data) => {
@@ -65,7 +66,7 @@ let createAppointment = (data) => {
 
     });
 }
-let getAllAppointments = (key, page, limit, status, date_string) => {
+let getAllAppointments = (key, page, limit, status, date_string, rate) => {
     return new Promise(async (resolve, reject) => {
         try {
             // Xoa cac cuoc hen bi tre va xu ly chuyen trang thai cac cuoc hen sang done
@@ -74,6 +75,7 @@ let getAllAppointments = (key, page, limit, status, date_string) => {
             ////////////////////////////////
             page = page - 0;
             limit = limit - 0;
+            rate = rate - 0;
             let offset = page * limit;
             let requirement = {};
             if (status !== '') {
@@ -94,6 +96,12 @@ let getAllAppointments = (key, page, limit, status, date_string) => {
                         [Op.between]: [dateStart, dateEnd]
                     }
                 }
+            }
+            let requirementRate = {};
+            if (Number.isInteger(rate) && (rate>=1) && (rate<=5)){
+                requirementRate = {
+                    rating: rate
+                };
             }
 
             const { count, rows } = await db.Appointment.findAndCountAll({
@@ -148,7 +156,8 @@ let getAllAppointments = (key, page, limit, status, date_string) => {
                                 { Doctorname: db.sequelize.where(db.sequelize.fn('concat', db.sequelize.col('schedule.doctor.user.firsname'), " ", db.sequelize.col('schedule.doctor.user.lastname')), 'LIKE', '%' + key + '%') }
                             ]
                         },
-                        requirementDate
+                        requirementDate,
+                        requirementRate
                     ]
                 },
                 order: [
@@ -355,7 +364,7 @@ let acceptAppointment = (id, userId) => {
                 appointments.map(a => {
                     notificationService.CreateNotification(appointment.id, a.patient.user.id, message2);
                     notificationService.deleteNotificationOfUserLastWeek(a.patient.user.id);
-    
+
                 });
             }
             // xoa appointment khong duoc chap nhan
@@ -373,7 +382,7 @@ let acceptAppointment = (id, userId) => {
         }
     });
 }
-let getAppointmentForUserByUserId = (id, key, page, limit, status, day, date_string) => {
+let getAppointmentForUserByUserId = (id, key, page, limit, status, day, date_string, rate) => {
     return new Promise(async (resolve, reject) => {
         try {
             // Xoa cac cuoc hen bi tre va xu ly chuyen trang thai cac cuoc hen sang done
@@ -383,6 +392,7 @@ let getAppointmentForUserByUserId = (id, key, page, limit, status, day, date_str
             id = id - 0;
             page = page - 0;
             limit = limit - 0;
+            rate = rate - 0;
             let offset = page * limit;
             let requirement = {};
             if (status !== '') {
@@ -414,6 +424,12 @@ let getAppointmentForUserByUserId = (id, key, page, limit, status, day, date_str
                         [Op.between]: [dateStart, dateEnd]
                     }
                 }
+            }
+            let requirementRate = {};
+            if (Number.isInteger(rate) && (rate>=1) && (rate<=5)){
+                requirementRate = {
+                    rating: rate
+                };
             }
             const { count, rows } = await db.Appointment.findAndCountAll({
                 include: [
@@ -474,7 +490,8 @@ let getAppointmentForUserByUserId = (id, key, page, limit, status, day, date_str
                                 { Doctorname: db.sequelize.where(db.sequelize.fn('concat', db.sequelize.col('schedule.doctor.user.firsname'), " ", db.sequelize.col('schedule.doctor.user.lastname')), 'LIKE', '%' + key + '%') },
                             ]
                         },
-                        requirementDate2
+                        requirementDate2,
+                        requirementRate
                     ]
                 },
                 order: [
@@ -555,7 +572,7 @@ let DeleteAppointmentStatusNew = () => {
                 raw: true,
                 nest: true
             })
-            if (appointments.length !== 0){
+            if (appointments.length !== 0) {
                 console.log(appointments);
                 let appointment = appointments[0];
                 console.log(appointment);
@@ -563,7 +580,7 @@ let DeleteAppointmentStatusNew = () => {
                 appointments.map(a => {
                     notificationService.CreateNotification(appointment.id, a.patient.user.id, message2);
                     notificationService.deleteNotificationOfUserLastWeek(a.patient.user.id);
-    
+
                 });
             }
             await db.Appointment.destroy({
@@ -831,6 +848,74 @@ let AdminHandlesAppointment = (id, violator) => {
         }
     });
 }
+let PatientRatingAppointment = (userIdPatient, appointmentId, scores) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let resData = {};
+            let appointment = await db.Appointment.findByPk(appointmentId, {
+                include: [
+                    {
+                        model: db.Patient,
+                        required: true,
+                        as: 'patient',
+                        include:
+                        {
+                            model: db.User,
+                            required: true,
+                            as: 'user',
+                            attributes: {
+                                exclude: ['password', 'token']
+                            },
+                            where: { id: userIdPatient }
+                        },
+                    },
+
+                    {
+                        model: db.Schedule,
+                        required: true,
+                        as: 'schedule',
+                        include:
+                        {
+                            model: db.Doctor,
+                            required: true,
+                            as: 'doctor',
+                            include:
+                            {
+                                model: db.User,
+                                required: true,
+                                as: 'user',
+                                attributes: {
+                                    exclude: ['password', 'token']
+                                },
+                            }
+                        },
+                    },
+                    {
+                        model: db.Status,
+                        required: true,
+                        as: 'status',
+                        where: { name: "DONE" }
+                    }
+                ]
+            })
+            if (!appointment) {
+                resData.errCode = 1;
+                resData.message = 'Cuộc hẹn không tồn tại';
+                resolve(resData);
+                return;
+            }
+            let ratingOld = appointment.rating;
+            doctorService.RatingDoctor(appointment.schedule.doctor.id, scores, ratingOld)
+            appointment.rating = scores;
+            await appointment.save();
+            resData.errCode = 0;
+            resData.message = 'OK';
+            resolve(resData);
+        } catch (e) {
+            reject(e);
+        }
+    })
+}
 module.exports = {
     createAppointment: createAppointment,
     getAllAppointments: getAllAppointments,
@@ -841,5 +926,6 @@ module.exports = {
     CanCelAppointment: CanCelAppointment,
     deleteAppointment: deleteAppointment,
     ReportAppointment: ReportAppointment,
-    AdminHandlesAppointment: AdminHandlesAppointment
+    AdminHandlesAppointment: AdminHandlesAppointment,
+    PatientRatingAppointment
 }
