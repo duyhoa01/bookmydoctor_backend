@@ -271,7 +271,12 @@ let getScheduleById = async (data) => {
                     {
                         model: db.Doctor,
                         require: true,
-                        as: 'doctor'
+                        as: 'doctor',
+                        include: {
+                            model: db.User,
+                            require: true,
+                            as: 'user',
+                        }
                     },
                     {
                         model: db.Appointment,

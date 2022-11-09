@@ -37,6 +37,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: false
     },
+    rating: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    }
   }, {
   sequelize,
   modelName: 'Appointment',

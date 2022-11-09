@@ -15,7 +15,7 @@ module.exports = (sequelize, DataTypes) => {
       this.hasOne(models.Patient,{foreignKey:'user_id',as:'patient'})
       this.hasOne(models.Collaborator,{foreignKey:'user_id',as:'collaborator'})
       this.hasOne(models.Admin,{foreignKey:'user_id',as:'admin'})
-      this.hasOne(models.Notification,{foreignKey:'user_id',as:'notification'})
+      this.hasMany(models.Notification,{foreignKey:'user_id',as:'notification'})
     }
     // toJSON(){
     //   return {...this.get(), password: undefined}
@@ -68,6 +68,10 @@ module.exports = (sequelize, DataTypes) => {
     },
     token: {
       type:DataTypes.STRING,
+      allowNull:true
+    },
+    violation: {
+      type:DataTypes.INTEGER,
       allowNull:true
     }
   }, {

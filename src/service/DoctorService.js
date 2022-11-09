@@ -93,14 +93,19 @@ let getDoctorById = (id) => {
                         model: db.Specialty,
                         required: true,
                         as: 'specialty', 
+                    },
+                    {
+                        model: db.Schedule,
+                        require: true,
+                        as: 'schedules', 
                     }
 
                 ],
                 where: {
                     id: id,
                 },
-                raw: true,
-                nest: true,
+                // raw: true,
+                // nest: true,
             });
             resolve(doctor);
         } catch (err) {
@@ -139,7 +144,8 @@ let createDoctor = (data) => {
                 const doctor = await db.Doctor.create(
                     {
                         description: data.description,
-                        rate: data.rate,
+                        rate: 0,
+                        numberOfReviews: 0,
                         user_id: userData.user.id,
                         hospital_id: data.hospital_id,
                         clinic_id: data.clinic_id,
@@ -340,43 +346,24 @@ let getDoctorByHospital = (id, key, page, limit) => {
         }
     });
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-module.exports = {
-    getAllDoctor: getAllDoctor,
-    getDoctorById: getDoctorById,
-    createDoctor: createDoctor,
-    updateDoctor: updateDoctor,
-    deleteDoctor: deleteDoctor,
-    getDoctorBySpecialty: getDoctorBySpecialty,
-    getDoctorByHospital: getDoctorByHospital,
-    getRevenueOfAllDoctors: getRevenueOfAllDoctors,
-    getRevenueOfDoctor: getRevenueOfDoctor
+let RatingDoctor = (id, scores, scoresOld) => {
+    return new Promise(async(resolve, reject) => {
+        try {
+            let doctor = await db.Doctor.findByPk(id);
+            if (!scoresOld) {
+                // if (doctor.numberOfReviews === null) doctor.numberOfReviews = 0;
+                doctor.rate = (doctor.rate*doctor.numberOfReviews + scores)/(doctor.numberOfReviews + 1);
+                doctor.numberOfReviews++;
+            } else {
+                doctor.rate = (doctor.rate*doctor.numberOfReviews - scoresOld + scores)/(doctor.numberOfReviews);
+            }
+            await doctor.save();
+            resolve(true);
+        } catch (e) {
+            reject(e);
+        }
+    })
 }
-
-
 let getRevenueOfAllDoctors = async (data) => {
     return new Promise(async(resolve, reject) => {
         try {
@@ -385,8 +372,8 @@ let getRevenueOfAllDoctors = async (data) => {
             await db.sequelize.query("SET sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'");
             let sql= "select * from (Select d.id, d.description,d.rate,d.user_id,d.hospital_id,d.clinic_id,d.specialty_id,"
             +"u.email as 'user.email',u.firsname as 'user.firsname',u.lastname as 'user.lastname',u.image as 'user.image',u.gender as 'user.gender',u.phoneNumber as 'user.phoneNumber',u.birthday as 'user.birthday',u.address as 'user.address',u.status as 'user.status',u.role_id as 'user.role_id'  from Doctors d INNER JOIN Users u ON d.user_id = u.id) p1 "
-            +" LEFT JOIN (select s.doctor_id,sum(s.cost) as revenue , count(s.id) as done from Schedules s  LEFT JOIN Appointments a ON s.id = a.schedule_id LEFT JOIN Statuses sta ON a.status_id = sta.id where sta.name = 'DONE' and s.status = true and s.begin between :beginDate and :endDate  GROUP BY s.doctor_id ) p2 ON p1.id = p2.doctor_id ORDER BY revenue DESC;"
-            let doctors = await db.sequelize.query(sql,{ replacements: { beginDate: data.begin, endDate: data.end },type: QueryTypes.SELECT })
+            +" LEFT JOIN (select s.doctor_id,sum(s.cost) as revenue , count(s.id) as done from Schedules s  LEFT JOIN Appointments a ON s.id = a.schedule_id LEFT JOIN Statuses sta ON a.status_id = sta.id where sta.name = 'DONE' and s.status = true and s.begin between :beginDate and :endDate  GROUP BY s.doctor_id ) p2 ON p1.id = p2.doctor_id ORDER BY revenue DESC LIMIT :limit OFFSET :offset;;"
+            let doctors = await db.sequelize.query(sql,{ replacements: { beginDate: data.begin, endDate: data.end , limit : size , offset: pageNumber*size },type: QueryTypes.SELECT })
             let arr = Array.from(doctors)
             arr.forEach(d => {
                 d.revenue= d.revenue === null ? 0: d.revenue;
@@ -435,3 +422,18 @@ let getRevenueOfDoctor = async (data) => {
         }
     });
 }
+
+module.exports = {
+    getAllDoctor: getAllDoctor,
+    getDoctorById: getDoctorById,
+    createDoctor: createDoctor,
+    updateDoctor: updateDoctor,
+    deleteDoctor: deleteDoctor,
+    getDoctorBySpecialty: getDoctorBySpecialty,
+    getDoctorByHospital: getDoctorByHospital,
+    RatingDoctor,
+    getRevenueOfAllDoctors: getRevenueOfAllDoctors,
+    getRevenueOfDoctor: getRevenueOfDoctor
+}
+
+

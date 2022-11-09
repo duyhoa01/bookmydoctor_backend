@@ -53,7 +53,7 @@ let getDoctorById = async(req,res) => {
 let createDoctor = async(req,res) => {
     if (!req.body.email || !req.body.password || !req.body.firsname || !req.body.lastname 
         || !req.body.gender || !req.body.phoneNumber || !req.body.birthday || !req.body.address  
-        || !req.body.description || !req.body.rate || !req.body.hospital_id || !req.body.clinic_id || !req.body.specialty_id ) {
+        || !req.body.description || !req.body.hospital_id || !req.body.clinic_id || !req.body.specialty_id ) {
         return res.status(400).json({
             erroCode:1,
             message:'Nhập thiếu thông tin'

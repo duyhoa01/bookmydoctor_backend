@@ -10,6 +10,7 @@ const specialty = require('./specialty')
 const hospital = require('./hospital')
 const appointment = require('./appointment');
 const schedule = require('./schedule')
+const notification = require('./notification')
 
 
 router.get("/status",(req,res)=>{
@@ -32,5 +33,6 @@ router.use('/specialty',specialty)
 router.use('/hospital', hospital)
 router.use('/appointment', appointment)
 router.use('/schedule',schedule)
+router.use('/notification',notification)
 
 module.exports = router;
