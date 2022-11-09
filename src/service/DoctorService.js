@@ -340,6 +340,43 @@ let getDoctorByHospital = (id, key, page, limit) => {
         }
     });
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+module.exports = {
+    getAllDoctor: getAllDoctor,
+    getDoctorById: getDoctorById,
+    createDoctor: createDoctor,
+    updateDoctor: updateDoctor,
+    deleteDoctor: deleteDoctor,
+    getDoctorBySpecialty: getDoctorBySpecialty,
+    getDoctorByHospital: getDoctorByHospital,
+    getRevenueOfAllDoctors: getRevenueOfAllDoctors,
+    getRevenueOfDoctor: getRevenueOfDoctor
+}
+
+
 let getRevenueOfAllDoctors = async (data) => {
     return new Promise(async(resolve, reject) => {
         try {
@@ -397,15 +434,4 @@ let getRevenueOfDoctor = async (data) => {
             reject(e)
         }
     });
-}
-module.exports = {
-    getAllDoctor: getAllDoctor,
-    getDoctorById: getDoctorById,
-    createDoctor: createDoctor,
-    updateDoctor: updateDoctor,
-    deleteDoctor: deleteDoctor,
-    getDoctorBySpecialty: getDoctorBySpecialty,
-    getDoctorByHospital: getDoctorByHospital,
-    getRevenueOfAllDoctors: getRevenueOfAllDoctors,
-    getRevenueOfDoctor: getRevenueOfDoctor
 }
