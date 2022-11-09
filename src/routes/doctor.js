@@ -2,6 +2,8 @@ const router = require('express').Router();
 const doctorController = require('../controller/DoctorController');
 const authJwt = require('../middlewares/authJwt');
 const fileUploader = require('../config/cloudinary.config');
+router.get('/revenue', authJwt.authenToken, authJwt.isAdmin,doctorController.getRevenueOfAllDoctors); 
+router.get('/:id/revenue', authJwt.authenToken, authJwt.isAdminOrYourself,doctorController.getRevenueOfDoctor); 
 router.get('/', doctorController.getAllDoctor);
 router.get('/:id', doctorController.getDoctorById);
 router.post('/', authJwt.authenToken, authJwt.isAdmin, fileUploader.single('image'), doctorController.createDoctor);

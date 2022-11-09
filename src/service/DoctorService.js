@@ -4,7 +4,7 @@ const { Op, where } = require('sequelize');
 const specialtyService = require('./SpecialtyService');
 const hospitalService = require('./hospitalService');
 const clinicService = require('./clinicService');
-
+const { QueryTypes } = require('sequelize');
 
 let getAllDoctor = (key, page, limit) => {
     return new Promise(async (resolve, reject) => {
@@ -364,6 +364,65 @@ let RatingDoctor = (id, scores, scoresOld) => {
         }
     })
 }
+let getRevenueOfAllDoctors = async (data) => {
+    return new Promise(async(resolve, reject) => {
+        try {
+            pageNumber = data.pageNumber-0;
+            size = data.size -0;
+            await db.sequelize.query("SET sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'");
+            let sql= "select * from (Select d.id, d.description,d.rate,d.user_id,d.hospital_id,d.clinic_id,d.specialty_id,"
+            +"u.email as 'user.email',u.firsname as 'user.firsname',u.lastname as 'user.lastname',u.image as 'user.image',u.gender as 'user.gender',u.phoneNumber as 'user.phoneNumber',u.birthday as 'user.birthday',u.address as 'user.address',u.status as 'user.status',u.role_id as 'user.role_id'  from Doctors d INNER JOIN Users u ON d.user_id = u.id) p1 "
+            +" LEFT JOIN (select s.doctor_id,sum(s.cost) as revenue , count(s.id) as done from Schedules s  LEFT JOIN Appointments a ON s.id = a.schedule_id LEFT JOIN Statuses sta ON a.status_id = sta.id where sta.name = 'DONE' and s.status = true and s.begin between :beginDate and :endDate  GROUP BY s.doctor_id ) p2 ON p1.id = p2.doctor_id ORDER BY revenue DESC LIMIT :limit OFFSET :offset;;"
+            let doctors = await db.sequelize.query(sql,{ replacements: { beginDate: data.begin, endDate: data.end , limit : size , offset: pageNumber*size },type: QueryTypes.SELECT })
+            let arr = Array.from(doctors)
+            arr.forEach(d => {
+                d.revenue= d.revenue === null ? 0: d.revenue;
+                d.done= d.done === null ? 0: d.done;
+                d.profits = d.revenue * 0.9;
+                return d;
+            })
+            let resData = {};
+            resData.doctors= doctors;
+            resData.size=size;
+            resData.totalPages= Math.ceil(arr.length/size);
+            resData.totalElements=arr.length
+            resData.page = pageNumber
+            resolve(resData)
+        } catch (e) {
+            reject(e)
+        }
+    });
+}
+let getRevenueOfDoctor = async (data) => {
+    return new Promise(async(resolve, reject) => {
+        try {
+            await db.sequelize.query("SET sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'");
+            let sql= "select * from (Select d.id, d.description,d.rate,d.user_id,d.hospital_id,d.clinic_id,d.specialty_id,"
+            +"u.email as 'user.email',u.firsname as 'user.firsname',u.lastname as 'user.lastname',u.image as 'user.image',u.gender as 'user.gender',u.phoneNumber as 'user.phoneNumber',u.birthday as 'user.birthday',u.address as 'user.address',u.status as 'user.status',u.role_id as 'user.role_id'  from Doctors d INNER JOIN Users u ON d.user_id = u.id WHERE d.id= :doctor_id) p1 "
+            +" LEFT JOIN (select s.doctor_id,sum(s.cost) as revenue , count(s.id) as done from Schedules s  LEFT JOIN Appointments a ON s.id = a.schedule_id LEFT JOIN Statuses sta ON a.status_id = sta.id where sta.name = 'DONE' and s.status = true and s.begin between :beginDate and :endDate  GROUP BY s.doctor_id ) p2 ON p1.id = p2.doctor_id ORDER BY revenue DESC LIMIT 1;"
+            let doctors = await db.sequelize.query(sql,{ replacements: { beginDate: data.begin, endDate: data.end, doctor_id: data.doctor_id },type: QueryTypes.SELECT })
+            let arr = Array.from(doctors)
+            if(arr.length == 0){
+                return resolve({
+                    errCode: 1,
+                    message: 'id bác sĩ không tồn tại'
+                })
+            }
+            let doctor = doctors[0] 
+            doctor.revenue= doctor.revenue === null ? 0: doctor.revenue;
+            doctor.done= doctor.done === null ? 0: doctor.done;
+            doctor.profits = doctor.revenue * 0.9;
+            console.log(doctor)
+            return resolve({
+                errCode: 0,
+                doctor: doctor
+            })
+        } catch (e) {
+            reject(e)
+        }
+    });
+}
+
 module.exports = {
     getAllDoctor: getAllDoctor,
     getDoctorById: getDoctorById,
@@ -372,5 +431,9 @@ module.exports = {
     deleteDoctor: deleteDoctor,
     getDoctorBySpecialty: getDoctorBySpecialty,
     getDoctorByHospital: getDoctorByHospital,
-    RatingDoctor
+    RatingDoctor,
+    getRevenueOfAllDoctors: getRevenueOfAllDoctors,
+    getRevenueOfDoctor: getRevenueOfDoctor
 }
+
+
