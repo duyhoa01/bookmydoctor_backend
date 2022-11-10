@@ -374,6 +374,7 @@ let getRevenueOfAllDoctors = async (data) => {
             +"u.email as 'user.email',u.firsname as 'user.firsname',u.lastname as 'user.lastname',u.image as 'user.image',u.gender as 'user.gender',u.phoneNumber as 'user.phoneNumber',u.birthday as 'user.birthday',u.address as 'user.address',u.status as 'user.status',u.role_id as 'user.role_id'  from Doctors d INNER JOIN Users u ON d.user_id = u.id) p1 "
             +" LEFT JOIN (select s.doctor_id,sum(s.cost) as revenue , count(s.id) as done from Schedules s  LEFT JOIN Appointments a ON s.id = a.schedule_id LEFT JOIN Statuses sta ON a.status_id = sta.id where sta.name = 'DONE' and s.status = true and s.begin between :beginDate and :endDate  GROUP BY s.doctor_id ) p2 ON p1.id = p2.doctor_id ORDER BY revenue DESC LIMIT :limit OFFSET :offset;;"
             let doctors = await db.sequelize.query(sql,{ replacements: { beginDate: data.begin, endDate: data.end , limit : size , offset: pageNumber*size },type: QueryTypes.SELECT })
+            let length = await db.Doctor.count();
             let arr = Array.from(doctors)
             arr.forEach(d => {
                 d.revenue= d.revenue === null ? 0: d.revenue;
@@ -384,8 +385,8 @@ let getRevenueOfAllDoctors = async (data) => {
             let resData = {};
             resData.doctors= doctors;
             resData.size=size;
-            resData.totalPages= Math.ceil(arr.length/size);
-            resData.totalElements=arr.length
+            resData.totalPages= Math.ceil(length/size);
+            resData.totalElements=length
             resData.page = pageNumber
             resolve(resData)
         } catch (e) {
