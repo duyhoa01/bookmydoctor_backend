@@ -339,10 +339,9 @@ let addScheduleMultiDate =  async (data)=>{
         try{
             var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
-            beginCop = data.beginDate;
-            endCop = data.endDate;
             data.beginDate= Date.parse(data.beginDate)
             data.endDate = Date.parse(data.endDate)
+            // console.log(new Date('2022/10/10 07:00:00 GMT+0700'))
             if(data.endDate<=data.beginDate){
                 return resolve({
                     errCode: 2,
@@ -352,19 +351,27 @@ let addScheduleMultiDate =  async (data)=>{
             let numberDate = (data.endDate - data.beginDate)/(60000*60*24);
             let arr = []
             let k = 0;
-            for(let i =0 ; i< numberDate ; i++){
+            for(let i =0 ; i<= numberDate ; i++){
                 let date = data.beginDate + i*(60000*60*24);
-                let  weekday =days[(new Date(date)).getDay()]
+                let d= new Date(date);
+                let  weekday =days[(d).getDay()]
                 if(data.weekdays.includes(weekday)){
                     let schedules = data.schedules
                     for(let s of schedules){
                         let list = s.split('-')
-                        let timesBegin = list[0].split(':');
-                        let timesEnd = list[1].split(':');
-                        let begin= new Date(date);
-                        begin = new Date(begin.getTime()+ 60000*60*timesBegin[0]+ 60000* timesBegin[1])
-                        let end = new Date(date)
-                        end = new Date(end.getTime()+ 60000*60*timesEnd[0]+ 60000* timesEnd[1])
+                        // let timesBegin = list[0].split(':');
+                        // let timesEnd = list[1].split(':');
+                        // let begin= new Date(date);
+                        // begin = new Date(begin.getTime()+ 60000*60*timesBegin[0]+ 60000* timesBegin[1])
+                        // let end = new Date(date)
+                        // end = new Date(end.getTime()+ 60000*60*timesEnd[0]+ 60000* timesEnd[1])
+
+                        // console.log(d.getFullYear() +'/'+ d.getMonth()+'/'+d.getDate()+' '+list[0])
+                        begin = new Date(d.getFullYear() +'/'+ d.getMonth()+'/'+d.getDate()+' '+list[0])
+                        end = new Date(d.getFullYear() +'/'+ d.getMonth()+'/'+d.getDate()+' '+list[1])
+                        // console.log(begin);
+                        // console.log(end)
+
                         let input = {
                             begin: begin,
                             end: end,
