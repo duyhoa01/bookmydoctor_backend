@@ -6,12 +6,25 @@ const connectDB = require('./src/config/connectDB');
 const app = express()
 const port = 3000
 
-const cors=require("cors");
-const corsOptions ={
-   origin:'*', 
-   credentials:true,            //access-control-allow-credentials:true
-   optionSuccessStatus:200,
-}
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  // const allowedOrigins = ['http://localhost:3000', 'https://bookmydoctor.onrender.com/', 'https://bookmydoctor.onrender.com/'];
+  // const origin = req.headers.origin;
+  // if (allowedOrigins.includes(origin)) {
+  //      res.setHeader('Access-Control-Allow-Origin', origin);
+  // }
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  res.header("Access-Control-Allow-credentials", true);
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, UPDATE");
+  next();
+});
+
+// const cors=require("cors");
+// const corsOptions ={
+//    origin:'*', 
+//    credentials:true,            //access-control-allow-credentials:true
+//    optionSuccessStatus:200,
+// }
 
 app.use(cors(corsOptions)) // Use this after the variable declaration
 
