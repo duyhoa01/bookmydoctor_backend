@@ -15,11 +15,11 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   MessageChat.init({
-    doctor_id: {
+    from_user: {
       type:DataTypes.INTEGER,
       allowNull:false
     },
-    patient_id: {
+    to_user: {
       type:DataTypes.INTEGER,
       allowNull:false
     },
