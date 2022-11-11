@@ -370,7 +370,6 @@ let addScheduleMultiDate =  async (data)=>{
                         end = new Date(d.getFullYear() +'/'+ d.getMonth()+'/'+d.getDate()+' '+list[1])
                         // console.log(begin);
                         // console.log(end)
-
                         let input = {
                             begin: begin,
                             end: end,
