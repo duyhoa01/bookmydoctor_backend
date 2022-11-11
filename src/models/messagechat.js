@@ -11,11 +11,11 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       this.belongsTo(models.Patient, { foreignKey: 'patient_id', as: 'patient' });
-      this.belongsTo(models.Collaborator, { foreignKey: 'collaborator_id', as: 'collaborator' });
+      this.belongsTo(models.Doctor, { foreignKey: 'doctor_id', as: 'doctor' });
     }
   }
   MessageChat.init({
-    collaborator_id: {
+    doctor_id: {
       type:DataTypes.INTEGER,
       allowNull:false
     },
@@ -28,7 +28,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull:true
     },
     image: {
-      type:DataTypes.BLOB,
+      type:DataTypes.STRING,
       allowNull:true
     },
     date: {
