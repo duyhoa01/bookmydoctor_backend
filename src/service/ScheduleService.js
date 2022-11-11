@@ -365,7 +365,6 @@ let addScheduleMultiDate =  async (data)=>{
                         // begin = new Date(begin.getTime()+ 60000*60*timesBegin[0]+ 60000* timesBegin[1])
                         // let end = new Date(date)
                         // end = new Date(end.getTime()+ 60000*60*timesEnd[0]+ 60000* timesEnd[1])
-
                         // console.log(d.getFullYear() +'/'+ d.getMonth()+'/'+d.getDate()+' '+list[0])
                         begin = new Date(d.getFullYear() +'/'+ d.getMonth()+'/'+d.getDate()+' '+list[0])
                         end = new Date(d.getFullYear() +'/'+ d.getMonth()+'/'+d.getDate()+' '+list[1])
