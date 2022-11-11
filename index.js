@@ -2,6 +2,8 @@ const express = require('express')
 // const db = require('./models')
 const bodyParser = require('body-parser')
 const connectDB = require('./src/config/connectDB');
+const http = require('http');
+const server = http.createServer(app);
 
 const app = express()
 const port = 3000
@@ -16,6 +18,14 @@ const corsOptions ={
 app.use(cors(corsOptions)) // Use this after the variable declaration
 
 app.use(bodyParser.json())
+
+app.get('/', (req, res) => {
+  res.send('<h1>Hello world</h1>');
+});
+
+server.listen(port, () => {
+  console.log('listening on *:' + port);
+});
 
 const route= require('./src/routes')
 
