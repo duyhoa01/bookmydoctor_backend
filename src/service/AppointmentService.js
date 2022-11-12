@@ -26,6 +26,15 @@ let createAppointment = (data) => {
                 resolve(resData);
                 return;
             }
+            let check = await db.Appointment.findOne({
+                where: {patient_id: patient.id}
+            })
+            if(check) {
+                resData.errCode = 4;
+                resData.message = 'Bạn đã đăng ký lịch khám này';
+                resolve(resData);
+                return;
+            }
             let resSchedule = await ScheduleServices.getScheduleById(data3);
             if (resSchedule.errCode !== 0) {
                 resData.errCode = 2;
@@ -39,6 +48,7 @@ let createAppointment = (data) => {
                 resolve(resData);
                 return;
             }
+
             let appointment = await db.Appointment.create({
                 patient_id: patient.id,
                 schedule_id: resSchedule.message.id,
@@ -47,9 +57,6 @@ let createAppointment = (data) => {
                 status_id: status.id,
             });
             if (appointment) {
-                resData.errCode = 0;
-                resData.message = 'OK';
-                resData.data = appointment;
                 // Tao thong bao lich kham cho bac si
                 let message = `Bệnh nhân ${patient.user.firsname} ${patient.user.lastname} đăng ký lịch khám ngày ${appointment.date}`;
                 notificationService.CreateNotification(appointment.id, resSchedule.message.doctor.user.id, message);
@@ -58,6 +65,15 @@ let createAppointment = (data) => {
                 dataSend.message = message;
                 dataSend.receiverEmail = resSchedule.message.doctor.user.email;
                 emailService.sendNotification(dataSend);
+                resData.errCode = 0;
+                resData.message = 'OK';
+                resData.data = appointment;
+                resData.notification = [
+                    {
+                        usersId: [resSchedule.message.doctor.user.id],
+                        message: message
+                    }
+                ]
             }
             resolve(resData);
         } catch (e) {
@@ -98,7 +114,7 @@ let getAllAppointments = (key, page, limit, status, date_string, rate) => {
                 }
             }
             let requirementRate = {};
-            if (Number.isInteger(rate) && (rate>=1) && (rate<=5)){
+            if (Number.isInteger(rate) && (rate >= 1) && (rate <= 5)) {
                 requirementRate = {
                     rating: rate
                 };
@@ -337,6 +353,11 @@ let acceptAppointment = (id, userId) => {
             dataSend.message = message;
             dataSend.receiverEmail = appointment.patient.user.email;
             emailService.sendNotification(dataSend);
+            let notificationAcceptPatient =
+            {
+                usersId: [appointment.patient.user.id],
+                message: message
+            }
             // Gui thong bao cuoc hen bi tu choi cho benh nhan
             let appointments = await db.Appointment.findAll({
                 include: [
@@ -359,13 +380,19 @@ let acceptAppointment = (id, userId) => {
                     schedule_id: appointment.schedule_id
                 }
             })
+            let notificationBeDeclined = {};
             if (appointments.length !== 0) {
+                let userBeDeclined = [];
                 let message2 = `Bác sĩ ${appointment.schedule.doctor.user.firsname} ${appointment.schedule.doctor.user.lastname} từ chối lịch khám ngày ${appointment.date}`
                 appointments.map(a => {
+                    userBeDeclined.push(a.patient.user.id);
                     notificationService.CreateNotification(appointment.id, a.patient.user.id, message2);
                     notificationService.deleteNotificationOfUserLastWeek(a.patient.user.id);
-
                 });
+                notificationBeDeclined.usersId = userBeDeclined;
+                notificationBeDeclined.message = message2;
+
+
             }
             // xoa appointment khong duoc chap nhan
             await db.Appointment.destroy({
@@ -375,7 +402,11 @@ let acceptAppointment = (id, userId) => {
                 }
             })
             resData.errCode = 0;
-            resData.message = "OK";
+            resData.message = [
+                notificationAcceptPatient
+            ];
+            console.log(notificationBeDeclined);
+            if (notificationBeDeclined) resData.message.push(notificationBeDeclined);
             resolve(resData);
         } catch (err) {
             reject(err);
@@ -426,7 +457,7 @@ let getAppointmentForUserByUserId = (id, key, page, limit, status, day, date_str
                 }
             }
             let requirementRate = {};
-            if (Number.isInteger(rate) && (rate>=1) && (rate<=5)){
+            if (Number.isInteger(rate) && (rate >= 1) && (rate <= 5)) {
                 requirementRate = {
                     rating: rate
                 };
@@ -747,7 +778,17 @@ let ReportAppointment = (id, user_id) => {
             notificationService.deleteNotificationOfUserLastWeek(appointment.schedule.doctor.user.id);
 
             resData.errCode = 0;
-            resData.message = 'OK';
+            resData.message = [
+                {
+                    usersId: [appointment.patient.user.id],
+                    message: message
+                },
+                {
+                    usersId: [appointment.schedule.doctor.user.id],
+                    message: message2
+                }
+            ];
+
             resolve(resData);
         } catch (e) {
             reject(e);
@@ -841,7 +882,16 @@ let AdminHandlesAppointment = (id, violator) => {
             notificationService.deleteNotificationOfUserLastWeek(appointment.schedule.doctor.user.id);
             resData.errCode = 0;
             resData.errCode = 0;
-            resData.message = 'OK';
+            resData.message = [
+                {
+                    usersId: [appointment.patient.user.id],
+                    message: messageForPatient
+                },
+                {
+                    usersId: [appointment.schedule.doctor.user.id],
+                    message: messageForDoctor
+                }
+            ]
             resolve(resData);
         } catch (e) {
             reject(e);

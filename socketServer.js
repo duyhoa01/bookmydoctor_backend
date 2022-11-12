@@ -11,23 +11,19 @@ const SocketServer = (socket) => {
         users = users.filter(user => user.socketId !== socket.id)
     })
 
+    //Notification
+    socket.on('createNotify', msg => {
+        const clients = users.filter(user => msg.usersId.includes(user.id))
+        if(clients.length > 0){
+            clients.forEach(client => {
+                socket.to(`${client.socketId}`).emit('createNotifyToClient', msg.message)
+            })
+        }
+    })
 
-    // Notification
-    // socket.on('createNotify', msg => {
-    //     const client = users.find(user => msg.recipients.includes(user.id))
-    //     client && socket.to(`${client.socketId}`).emit('createNotifyToClient', msg)
-    // })
-
-    // socket.on('removeNotify', msg => {
-    //     const client = users.find(user => msg.recipients.includes(user.id))
-    //     client && socket.to(`${client.socketId}`).emit('removeNotifyToClient', msg)
-
-    // })
-
-
-    // Message
+    //Message
     socket.on('addMessage', msg => {
-        const user = users.find(user => user.id === msg.to_user)
+        const user = users.find(user => user.id === msg.recipient)
         user && socket.to(`${user.socketId}`).emit('addMessageToClient', msg)
     })
 

@@ -18,6 +18,9 @@ let createAppointment = async(req, res) => {
     if(resData.errCode === 3){
         res.status(400).json(resData);
     }
+    if(resData.errCode === 4){
+        res.status(400).json(resData);
+    }
 }
 let getAllAppointments = async(req, res) => {
     let key;
