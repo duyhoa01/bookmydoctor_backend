@@ -11,6 +11,7 @@ const hospital = require('./hospital')
 const appointment = require('./appointment');
 const schedule = require('./schedule')
 const notification = require('./notification')
+const messagechat = require('./mesagechat')
 
 
 router.get("/status",(req,res)=>{
@@ -34,5 +35,6 @@ router.use('/hospital', hospital)
 router.use('/appointment', appointment)
 router.use('/schedule',schedule)
 router.use('/notification',notification)
+router.use('/messagechat',messagechat)
 
 module.exports = router;

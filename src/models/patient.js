@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       this.belongsTo(models.User, { foreignKey: 'user_id', as: 'user' });    
       this.hasMany(models.Appointment, { foreignKey: 'patient_id', as: 'appointments' });
       this.hasMany(models.Rate, { foreignKey: 'patient_id', as: 'rates' });
-      this.hasMany(models.MessageChat, { foreignKey: 'patient_id', as: 'messageChat' });
+      // this.hasMany(models.MessageChat, { foreignKey: 'patient_id', as: 'messageChat' });
     }
   }
   Patient.init({
