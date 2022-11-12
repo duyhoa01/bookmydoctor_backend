@@ -16,6 +16,8 @@ module.exports = (sequelize, DataTypes) => {
       this.hasOne(models.Collaborator,{foreignKey:'user_id',as:'collaborator'})
       this.hasOne(models.Admin,{foreignKey:'user_id',as:'admin'})
       this.hasMany(models.Notification,{foreignKey:'user_id',as:'notification'})
+      this.hasMany(models.MessageChat, { foreignKey: 'from_user', as: 'SendmessageChat' });
+      this.hasMany(models.MessageChat, { foreignKey: 'to_user', as: 'GetmessageChat' });
     }
     // toJSON(){
     //   return {...this.get(), password: undefined}
