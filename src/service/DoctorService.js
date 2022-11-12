@@ -45,6 +45,10 @@ let getAllDoctor = (key, page, limit) => {
                     }
 
                 ],
+                order: [
+                    ['rate', 'DESC'],
+                    ['numberOfReviews', 'DESC']
+                ],
 
                 offset: offset,
                 limit: limit,
