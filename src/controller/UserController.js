@@ -81,6 +81,11 @@ let disableUser = async (req,res) =>{
     }
 }
 
+let getListUserChatWithUser = async (req,res) => {
+    let message = await userService.getListUserChatWithUser(req.params);
+    return res.status(200).json(message)
+}
+
 
 
 module.exports ={
@@ -88,5 +93,6 @@ module.exports ={
     updateInforUser,
     ResetPassword,
     enableUser,
-    disableUser
+    disableUser,
+    getListUserChatWithUser
 }

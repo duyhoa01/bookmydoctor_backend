@@ -21,6 +21,12 @@ let addMessage = async (data) => {
                             attributes: {
                                 exclude: ['password', 'token']
                             },
+                            include:
+                            {
+                                model: db.Role,
+                                required: true,
+                                as: 'role'
+                            },
                         },
                         {
                             model: db.User,
@@ -28,6 +34,12 @@ let addMessage = async (data) => {
                             as: 'toUser',
                             attributes: {
                                 exclude: ['password', 'token']
+                            },
+                            include:
+                            {
+                                model: db.Role,
+                                required: true,
+                                as: 'role'
                             },
                         },
                     ],
@@ -46,12 +58,16 @@ let addMessage = async (data) => {
     });
 }
 
-let getListMessage = async (data) => {
+let getListMessage = async (data,pageNumber,size) => {
     return new Promise( async (resolve, reject)=>{
         try{
-            console.log(data)
-            let messages = await db.MessageChat.findAll(
+            pageNumber = pageNumber-0;
+            size = size -0;
+            let resData = {};
+            const {count, rows} = await db.MessageChat.findAndCountAll(
                 {
+                    offset: pageNumber*size,
+                    limit: size,
                     where:{
                         [Op.or]:[
                             {  [Op.and]:[ {from_user: data.from_user},{to_user: data.to_user}] },
@@ -66,6 +82,12 @@ let getListMessage = async (data) => {
                             attributes: {
                                 exclude: ['password', 'token']
                             },
+                            include:
+                            {
+                                model: db.Role,
+                                required: true,
+                                as: 'role'
+                            },
                         },
                         {
                             model: db.User,
@@ -73,6 +95,12 @@ let getListMessage = async (data) => {
                             as: 'toUser',
                             attributes: {
                                 exclude: ['password', 'token']
+                            },
+                            include:
+                            {
+                                model: db.Role,
+                                required: true,
+                                as: 'role'
                             },
                         },
                     ],
@@ -84,10 +112,12 @@ let getListMessage = async (data) => {
                     },
                 }
             )
-            resolve({
-                errorCode:0,
-                message: messages
-            })
+            resData.messages= rows;
+            resData.size=size;
+            resData.totalPages= Math.ceil(count/size);
+            resData.totalElements=count
+            resData.page = pageNumber
+            resolve(resData)
         } catch(e){
             reject(e)
         }

@@ -3,6 +3,7 @@ const db = require('../models');
 const emailService = require('./emailService')
 const { v4: uuidv4 } = require('uuid');
 const { where } = require('sequelize');
+const { Op,QueryTypes } = require('sequelize');
 
 const salt = bcrypt.genSaltSync(10);
 
@@ -373,6 +374,82 @@ let disableUser = async (data) => {
     })
 }
 
+let getListUserChatWithUser= async (data) => {
+    return new Promise( async (resolve, reject)=>{
+        try{
+            await db.sequelize.query("SET sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'");
+            let users  = await db.sequelize.query("select from_user, to_user from MessageChats where to_user = :user_id or from_user=:user_id ORDER BY date DESC;",
+                            { replacements: { user_id: data.id },type: QueryTypes.SELECT });
+            let arrUsers = Array.from(users);
+            let arr =[]
+            for( let a of arrUsers){
+                if(a.from_user==data.id){
+                    arr.push(a.to_user);
+                } else{
+                    arr.push(a.from_user);
+                }
+            }
+            uniq = [...new Set(arr)];
+            console.log(uniq)
+            // let listUsers = await db.User.findAll({
+            //     where:{
+            //         id: {
+            //             [Op.in]: uniq
+            //         } 
+            //     },
+            //     include:[
+            //         {
+            //             model: db.Role,
+            //             required: true,
+            //             as: 'role'
+            //         } ,
+            //         {
+            //             model: db.MessageChat,
+            //             required: true,
+            //             as: 'SendmessageChat',
+            //             where:{
+            //                 to_user: data.id
+            //             },
+            //             limit: 1,
+            //             order: [
+            //                 ['date', 'DESC']
+            //             ],
+            //             attributes: {
+            //                 exclude: ['collaborator_id']
+            //             },
+            //         } ,
+            //         {
+            //             model: db.MessageChat,
+            //             required: true,
+            //             as: 'GetmessageChat',
+            //             where:{
+            //                 from_user: data.id
+            //             },
+            //             limit: 1,
+            //             order: [
+            //                 ['date', 'DESC']
+            //             ],
+            //             attributes: {
+            //                 exclude: ['collaborator_id']
+            //             },
+            //         } 
+            //     ],
+            //     attributes: {
+            //         exclude: ['password', 'token']
+            //     }, 
+            // })
+            let sql ="select * from (select p1.id,p1.email,p1.firsname, p1.lastname, p1.image,p1.gender,p1.phoneNumber,p1.birthday,p1.address,p1.status,p1.role_id, m.id as 'message.id' ,m.date as 'message.date', m.from_user as 'message.from_user', m.text as 'message.text', m.image as 'message.image' ,m.to_user as 'message.to_user',ROW_NUMBER() OVER(PARTITION BY p1.id ) rn from (select * from Users u where id in (:uniq)) p1 INNER JOIN MessageChats m ON (m.to_user = :user_id and m.from_user = p1.id) or ( m.from_user = :user_id and m.to_user = p1.id) ORDER BY m.date DESC) a WHERE rn = 1; ";
+            let listUsers = await db.sequelize.query(sql,{ replacements: { uniq: uniq, user_id: data.id },type: QueryTypes.SELECT })
+            return resolve({
+                errorCode:0,
+                users: listUsers
+            })
+        }catch(e){
+            reject(e)
+        }
+    });
+}
+
 
 
 module.exports = {
@@ -386,7 +463,8 @@ module.exports = {
     updateUser,
     ResetPassword,
     enableUser,
-    disableUser
+    disableUser,
+    getListUserChatWithUser
 }
 
 
