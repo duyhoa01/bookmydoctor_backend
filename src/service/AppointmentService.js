@@ -26,6 +26,8 @@ let createAppointment = (data) => {
                 resolve(resData);
                 return;
             }
+
+            let resSchedule = await ScheduleServices.getScheduleById(data3);
             let check = await db.Appointment.findOne({
                 where: {
                     schedule_id: resSchedule.message.id,
@@ -38,7 +40,6 @@ let createAppointment = (data) => {
                 resolve(resData);
                 return;
             }
-            let resSchedule = await ScheduleServices.getScheduleById(data3);
             if (resSchedule.errCode !== 0) {
                 resData.errCode = 2;
                 resData.message = 'Không tìm thấy lịch khám';

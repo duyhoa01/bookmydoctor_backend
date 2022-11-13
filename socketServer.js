@@ -16,7 +16,8 @@ const SocketServer = (socket) => {
         const clients = users.filter(user => msg.usersId.includes(user.id))
         if(clients.length > 0){
             clients.forEach(client => {
-                socket.to(`${client.socketId}`).emit('createNotifyToClient', msg.message)
+                delete msg.usersId;
+                socket.to(`${client.socketId}`).emit('createNotifyToClient', msg)
             })
         }
     })
