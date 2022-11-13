@@ -410,7 +410,7 @@ let acceptAppointment = (id, userId) => {
                 notificationAcceptPatient
             ];
             console.log(notificationBeDeclined);
-            if (notificationBeDeclined) resData.message.push(notificationBeDeclined);
+            if (!(Object.keys(notificationBeDeclined).length === 0)) resData.message.push(notificationBeDeclined);
             resolve(resData);
         } catch (err) {
             reject(err);
