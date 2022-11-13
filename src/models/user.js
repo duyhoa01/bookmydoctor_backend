@@ -18,6 +18,7 @@ module.exports = (sequelize, DataTypes) => {
       this.hasMany(models.Notification,{foreignKey:'user_id',as:'notification'})
       this.hasMany(models.MessageChat, { foreignKey: 'from_user', as: 'SendmessageChat' });
       this.hasMany(models.MessageChat, { foreignKey: 'to_user', as: 'GetmessageChat' });
+      this.hasOne(models.Comment,{foreignKey:'user_id',as:'comment'})
     }
     // toJSON(){
     //   return {...this.get(), password: undefined}

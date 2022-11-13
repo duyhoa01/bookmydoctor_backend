@@ -27,7 +27,10 @@ let createAppointment = (data) => {
                 return;
             }
             let check = await db.Appointment.findOne({
-                where: {patient_id: patient.id}
+                where: {
+                    schedule_id: resSchedule.message.id,
+                    patient_id: patient.id
+                }
             })
             if(check) {
                 resData.errCode = 4;
