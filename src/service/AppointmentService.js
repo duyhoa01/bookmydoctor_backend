@@ -62,7 +62,7 @@ let createAppointment = (data) => {
             });
             if (appointment) {
                 // Tao thong bao lich kham cho bac si
-                let message = `Bệnh nhân ${patient.user.firsname} ${patient.user.lastname} đăng ký lịch khám ngày ${appointment.date}`;
+                let message = `Bệnh nhân ${patient.user.firsname} ${patient.user.lastname} đăng ký lịch khám ngày ${appointment.date.toLocaleString('en-US', { timeZone: "Asia/Jakarta" })}`;
                 notificationService.CreateNotification(appointment.id, resSchedule.message.doctor.user.id, message);
                 notificationService.deleteNotificationOfUserLastWeek(resSchedule.message.doctor.user.id);
                 let dataSend = {};
@@ -350,7 +350,7 @@ let acceptAppointment = (id, userId) => {
                 where: { id: appointment.schedule.id }
             });
             // Tao thong bao lich kham cho benh nhan
-            let message = `Bác sĩ ${appointment.schedule.doctor.user.firsname} ${appointment.schedule.doctor.user.lastname} đã chấp nhận lịch khám ngày ${appointment.date}`
+            let message = `Bác sĩ ${appointment.schedule.doctor.user.firsname} ${appointment.schedule.doctor.user.lastname} đã chấp nhận lịch khám ngày ${appointment.date.toLocaleString('en-US', { timeZone: "Asia/Jakarta" })}`
             notificationService.CreateNotification(appointment.id, appointment.patient.user.id, message);
             notificationService.deleteNotificationOfUserLastWeek(appointment.patient.user.id)
             let dataSend = {};
@@ -387,7 +387,7 @@ let acceptAppointment = (id, userId) => {
             let notificationBeDeclined = {};
             if (appointments.length !== 0) {
                 let userBeDeclined = [];
-                let message2 = `Bác sĩ ${appointment.schedule.doctor.user.firsname} ${appointment.schedule.doctor.user.lastname} từ chối lịch khám ngày ${appointment.date}`
+                let message2 = `Bác sĩ ${appointment.schedule.doctor.user.firsname} ${appointment.schedule.doctor.user.lastname} từ chối lịch khám ngày ${appointment.date.toLocaleString('en-US', { timeZone: "Asia/Jakarta" })}`
                 appointments.map(a => {
                     userBeDeclined.push(a.patient.user.id);
                     notificationService.CreateNotification(appointment.id, a.patient.user.id, message2);
@@ -611,7 +611,7 @@ let DeleteAppointmentStatusNew = () => {
                 console.log(appointments);
                 let appointment = appointments[0];
                 console.log(appointment);
-                let message2 = `Bác sĩ đã từ chối lịch khám ngày ${appointment.date}`;
+                let message2 = `Bác sĩ đã từ chối lịch khám ngày ${appointment.date.toLocaleString('en-US', { timeZone: "Asia/Jakarta" })}`;
                 appointments.map(a => {
                     notificationService.CreateNotification(appointment.id, a.patient.user.id, message2);
                     notificationService.deleteNotificationOfUserLastWeek(a.patient.user.id);
@@ -773,11 +773,11 @@ let ReportAppointment = (id, user_id) => {
             await appointment.save();
             // Gui thong bao lich kham bi bao cao cho benh nhan va bac si
             // Thong bao cho benh nhan
-            let message = `Bạn đã báo bị báo cáo không đến khám theo lịch ngày ${appointment.date}, admin đang tiến hành xác thực`;
+            let message = `Bạn đã báo bị báo cáo không đến khám theo lịch ngày ${appointment.date.toLocaleString('en-US', { timeZone: "Asia/Jakarta" })}, admin đang tiến hành xác thực`;
             notificationService.CreateNotification(appointment.id, appointment.patient.user.id, message);
             notificationService.deleteNotificationOfUserLastWeek(appointment.patient.user.id);
             // Thong bao cho bac si
-            let message2 = `Bạn đã báo cáo thành công bệnh nhân ${appointment.patient.user.firsname} ${appointment.patient.user.lastname} không đến khám ngày ${appointment.date}, admin đang tiến hành xử lý`;
+            let message2 = `Bạn đã báo cáo thành công bệnh nhân ${appointment.patient.user.firsname} ${appointment.patient.user.lastname} không đến khám ngày ${appointment.date.toLocaleString('en-US', { timeZone: "Asia/Jakarta" })}, admin đang tiến hành xử lý`;
             notificationService.CreateNotification(appointment.id, appointment.schedule.doctor.user.id, message2);
             notificationService.deleteNotificationOfUserLastWeek(appointment.schedule.doctor.user.id);
 
@@ -863,17 +863,17 @@ let AdminHandlesAppointment = (id, violator) => {
             });
             if (violator == 'patient') {
                 appointment.status_id = statusVIOLATE.id;
-                let message = `Bạn đã không đến khám theo đúng lịch khám ngày ${appointment.date}`;
+                let message = `Bạn đã không đến khám theo đúng lịch khám ngày ${appointment.date.toLocaleString('en-US', { timeZone: "Asia/Jakarta" })}`;
                 let numberOfViolate = await violationService.HandleViolation(appointment.patient.user.id, message);
-                messageForPatient = `Bạn đã không đến khám theo đúng lịch khám ngày ${appointment.date}, số lần vi phạm của bạn đã tăng lên ${numberOfViolate}, quá 2 lần sẽ bị khóa tài khoản`;
-                messageForDoctor = `Báo cáo bệnh nhân không đến khám ngày ${appointment.date} đã được admin xác nhận chính xác, tài khoản bệnh nhân ${appointment.patient.user.firsname} ${appointment.patient.user.lastname} đã bị cảnh cáo vi phạm`;
+                messageForPatient = `Bạn đã không đến khám theo đúng lịch khám ngày ${appointment.date.toLocaleString('en-US', { timeZone: "Asia/Jakarta" })}, số lần vi phạm của bạn đã tăng lên ${numberOfViolate}, quá 2 lần sẽ bị khóa tài khoản`;
+                messageForDoctor = `Báo cáo bệnh nhân không đến khám ngày ${appointment.date.toLocaleString('en-US', { timeZone: "Asia/Jakarta" })} đã được admin xác nhận chính xác, tài khoản bệnh nhân ${appointment.patient.user.firsname} ${appointment.patient.user.lastname} đã bị cảnh cáo vi phạm`;
             }
             else {
                 appointment.status_id = statusDONE.id;
-                let message = `Báo cáo bệnh nhân ${appointment.patient.user.firsname} ${appointment.patient.user.lastname} không đến khám của bạn ngày ${appointment.date} là không đúng`;
+                let message = `Báo cáo bệnh nhân ${appointment.patient.user.firsname} ${appointment.patient.user.lastname} không đến khám của bạn ngày ${appointment.date.toLocaleString('en-US', { timeZone: "Asia/Jakarta" })} là không đúng`;
                 let numberOfViolate = await violationService.HandleViolation(appointment.schedule.doctor.user.id, message);
-                messageForDoctor = `Báo cáo bệnh nhân ${appointment.patient.user.firsname} ${appointment.patient.user.lastname} không đến khám của bạn ngày ${appointment.date} là không đúng, số lần vi phạm của bạn đã tăng lên ${numberOfViolate}, quá 2 lần sẽ bị khóa tài khoản`;
-                messageForPatient = `Bạn đã đến khám theo đúng lịch khám ngày ${appointment.date}, bác sĩ ${appointment.schedule.doctor.user.firsname} ${appointment.schedule.doctor.user.lastname} đã bị cảnh cáo vi phạm`;
+                messageForDoctor = `Báo cáo bệnh nhân ${appointment.patient.user.firsname} ${appointment.patient.user.lastname} không đến khám của bạn ngày ${appointment.date.toLocaleString('en-US', { timeZone: "Asia/Jakarta" })} là không đúng, số lần vi phạm của bạn đã tăng lên ${numberOfViolate}, quá 2 lần sẽ bị khóa tài khoản`;
+                messageForPatient = `Bạn đã đến khám theo đúng lịch khám ngày ${appointment.date.toLocaleString('en-US', { timeZone: "Asia/Jakarta" })}, bác sĩ ${appointment.schedule.doctor.user.firsname} ${appointment.schedule.doctor.user.lastname} đã bị cảnh cáo vi phạm`;
             }
 
             await appointment.save();
