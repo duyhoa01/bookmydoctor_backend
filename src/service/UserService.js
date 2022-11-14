@@ -389,8 +389,14 @@ let getListUserChatWithUser= async (data) => {
                     arr.push(a.from_user);
                 }
             }
+            if(arr.length == 0){
+                return resolve({
+                    errorCode:0,
+                    users: []
+                })
+            }  
             uniq = [...new Set(arr)];
-            console.log(uniq)
+            // console.log(uniq)
             // let listUsers = await db.User.findAll({
             //     where:{
             //         id: {
