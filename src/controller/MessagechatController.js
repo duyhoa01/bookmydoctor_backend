@@ -20,7 +20,7 @@ let addMessage = async (req,res) => {
 
 let getListMessageChat = async (req,res) => {
     let pageNumber = req.query.page === undefined ? 0: req.query.page
-    let size = req.query.size === undefined ? 10 : req.query.size
+    let size = req.query.size === undefined ? 20 : req.query.size
     let resData = await messageService.getListMessage(req.query,pageNumber,size)
     let page ={}
     page.size= resData.size

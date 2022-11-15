@@ -456,6 +456,34 @@ let getListUserChatWithUser= async (data) => {
     });
 }
 
+let getUserById = async (data) => {
+    return new Promise( async (resolve, reject)=>{
+        try{
+            let user = await db.User.findByPk(data.id,{
+                include:
+                {
+                    model: db.Role,
+                    required: true,
+                    as: 'role'
+                } ,
+            })
+            if(!user){
+                return resolve({
+                    errCode:2,
+                    message:'mã người dùng không tồn tại'
+                })
+            } else{
+                return resolve({
+                    errCode:2,
+                    user: user
+                })
+            }
+        } catch(e){
+            reject(e)
+        }
+    });
+}
+
 
 
 module.exports = {
@@ -470,7 +498,8 @@ module.exports = {
     ResetPassword,
     enableUser,
     disableUser,
-    getListUserChatWithUser
+    getListUserChatWithUser,
+    getUserById
 }
 
 
