@@ -474,7 +474,7 @@ let getUserById = async (data) => {
                 })
             } else{
                 return resolve({
-                    errCode:2,
+                    errCode:0,
                     user: user
                 })
             }
