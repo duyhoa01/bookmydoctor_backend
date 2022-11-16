@@ -16,7 +16,8 @@ module.exports = (sequelize, DataTypes) => {
       this.belongsTo(models.User, { foreignKey: 'user_id', as: 'user' });
       this.hasMany(models.Schedule, { foreignKey: 'doctor_id', as: 'schedules' });
       this.hasMany(models.Rate, { foreignKey: 'doctor_id', as: 'rates' });
-      this.hasOne(models.Comment,{foreignKey:'doctor_id',as:'comment'})
+      this.hasOne(models.Comment,{foreignKey:'doctor_id',as:'comment'});
+      this.hasOne(models.Payment,{foreignKey:'doctor_id',as:'payment'});
     }
   }
   Doctor.init({
@@ -44,6 +45,10 @@ module.exports = (sequelize, DataTypes) => {
     numberOfReviews: {
       type:DataTypes.INTEGER,
       allowNull:false,
+    },
+    paid: {
+      type: DataTypes.BOOLEAN,
+      allowNull:true,
     }
   }, {
     sequelize,
