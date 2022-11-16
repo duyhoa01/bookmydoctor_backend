@@ -398,13 +398,21 @@ let acceptAppointment = (id, userId) => {
 
 
             }
-            // xoa appointment khong duoc chap nhan
-            await db.Appointment.destroy({
-                where: {
-                    status_id: statusNew,
-                    schedule_id: appointment.schedule_id
+            // chuyen status cac appointments sang cancel
+            let [statusCancel, created] = await db.Status.findOrCreate({
+                where: { name: "CANCEL" }, raw: true
+            });
+            await db.Appointment.update(
+                {
+                    status_id: statusCancel.id,
+                },
+                {
+                    where: {
+                        status_id: statusNew,
+                        schedule_id: appointment.schedule_id
+                    }
                 }
-            })
+            )
             resData.errCode = 0;
             resData.message = [
                 notificationAcceptPatient
@@ -635,6 +643,9 @@ let CanCelAppointment = (id, userId) => {
     return new Promise(async (resolve, reject) => {
         let resData = {};
         try {
+            let [statusCanCel, created] = await db.Status.findOrCreate({
+                where: { name: "CANCEL" }, raw: true
+            });
             let appointment = await db.Appointment.findByPk(id, {
                 include: [
                     {
@@ -676,7 +687,8 @@ let CanCelAppointment = (id, userId) => {
                 resolve(resData);
                 return;
             }
-            await appointment.destroy();
+            appointment.status_id = statusCanCel.id;
+            await appointment.save();
             resData.errCode = 0;
             resData.message = "OK";
             resolve(resData);
