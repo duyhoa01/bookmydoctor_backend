@@ -86,7 +86,14 @@ let getListUserChatWithUser = async (req,res) => {
     return res.status(200).json(message)
 }
 
-
+let getUserById = async (req,res) => {
+    let resData = await userService.getUserById(req.params);
+    if(resData.errCode == 2){
+        return res.status(404).json(resData);
+    } else{
+        return res.status(200).json(resData);
+    }
+}
 
 module.exports ={
     changePassword,
@@ -94,5 +101,6 @@ module.exports ={
     ResetPassword,
     enableUser,
     disableUser,
-    getListUserChatWithUser
+    getListUserChatWithUser,
+    getUserById
 }

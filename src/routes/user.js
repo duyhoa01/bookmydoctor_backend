@@ -17,5 +17,7 @@ router.get('/enable/:id',authJwt.authenToken, authJwt.isAdmin,userController.ena
 
 router.get('/disable/:id',authJwt.authenToken, authJwt.isAdmin,userController.disableUser);
 
+router.get('/:id',authJwt.authenToken, userController.getUserById);
+
 
 module.exports = router

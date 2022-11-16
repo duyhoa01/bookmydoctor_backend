@@ -389,8 +389,14 @@ let getListUserChatWithUser= async (data) => {
                     arr.push(a.from_user);
                 }
             }
+            if(arr.length == 0){
+                return resolve({
+                    errorCode:0,
+                    users: []
+                })
+            }  
             uniq = [...new Set(arr)];
-            console.log(uniq)
+            // console.log(uniq)
             // let listUsers = await db.User.findAll({
             //     where:{
             //         id: {
@@ -450,6 +456,34 @@ let getListUserChatWithUser= async (data) => {
     });
 }
 
+let getUserById = async (data) => {
+    return new Promise( async (resolve, reject)=>{
+        try{
+            let user = await db.User.findByPk(data.id,{
+                include:
+                {
+                    model: db.Role,
+                    required: true,
+                    as: 'role'
+                } ,
+            })
+            if(!user){
+                return resolve({
+                    errCode:2,
+                    message:'mã người dùng không tồn tại'
+                })
+            } else{
+                return resolve({
+                    errCode:0,
+                    user: user
+                })
+            }
+        } catch(e){
+            reject(e)
+        }
+    });
+}
+
 
 
 module.exports = {
@@ -464,7 +498,8 @@ module.exports = {
     ResetPassword,
     enableUser,
     disableUser,
-    getListUserChatWithUser
+    getListUserChatWithUser,
+    getUserById
 }
 
 
