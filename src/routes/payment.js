@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const momo = require('../controller/MomoPaymentController');
+const authjwt = require('../middlewares/authJwt');
 
 
 router.post('/', momo.Payment);
