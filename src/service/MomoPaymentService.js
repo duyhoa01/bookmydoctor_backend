@@ -14,8 +14,8 @@ let Payment = (doctor_id, description, cost) => {
         // var redirectUrl = "https://webhook.site/c91ae285-2eed-44e7-80d1-d124b23c6802";
         var amount = cost;
         var requestType = "captureWallet"
-        var extraData = Buffer.from(doctor_id).toString('base64'); //pass empty value if your merchant does not have stores
-
+        var extraData = Buffer.from(doctor_id.toString()).toString('base64'); //pass empty value if your merchant does not have stores
+        // var extraData = "";
         //before sign HMAC SHA256 with format
         //accessKey=$accessKey&amount=$amount&extraData=$extraData&ipnUrl=$ipnUrl&orderId=$orderId&orderInfo=$orderInfo&partnerCode=$partnerCode&redirectUrl=$redirectUrl&requestId=$requestId&requestType=$requestType
         var rawSignature = "accessKey=" + accessKey + "&amount=" + amount + "&extraData=" + extraData + "&ipnUrl=" + ipnUrl + "&orderId=" + orderId + "&orderInfo=" + orderInfo + "&partnerCode=" + partnerCode + "&redirectUrl=" + redirectUrl + "&requestId=" + requestId + "&requestType=" + requestType
