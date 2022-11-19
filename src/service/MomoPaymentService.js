@@ -12,7 +12,7 @@ let Payment = (doctor_id, description, cost) => {
         var orderId = requestId;
         var orderInfo = description;
         var redirectUrl = `https://bookmydoctor.netlify.app/payment/return`;
-        var ipnUrl = `${process.env.HOST_BASE}/api/payment/notify`;
+        var ipnUrl = "https://bookmydoctor.onrender.com/api/payment/notify";
         // var ipnUrl = "https://1a95-59-153-246-143.ap.ngrok.io/api/payment/notify"
         // var ipnUrl = "localhost:3000/api/payment/notify"
         // var redirectUrl = "https://webhook.site/c91ae285-2eed-44e7-80d1-d124b23c6802";
