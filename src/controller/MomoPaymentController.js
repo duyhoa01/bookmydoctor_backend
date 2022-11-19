@@ -2,7 +2,10 @@
 const momoPaymentService = require('../service/MomoPaymentService');
 
 let Payment = async (req, res) => {
-    let hostname = req.headers.host + req.originalUrl;
+    let doctor_id = req.body.doctor_id;
+    if (!doctor_id) {
+        return res.status(400).json({ message: 'Thiếu id bác sĩ'});
+    }
     let description = req.body.description;
     if (!description) {
         return res.status(400).json({ message: 'Thiếu tham số tên lịch khám' });
@@ -11,7 +14,7 @@ let Payment = async (req, res) => {
     if (!cost) {
         return res.status(400).json({ message: 'Thiếu giá tiền' });
     }
-    momoPaymentService.Payment(hostname, description, cost)
+    momoPaymentService.Payment(doctor_id, description, cost)
         .then(data => {
             return res.status(200).json({ message: data.payUrl });
         })

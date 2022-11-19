@@ -1,4 +1,4 @@
-let Payment = (hostname, description, cost) => {
+let Payment = (doctor_id, description, cost) => {
     return new Promise((resolve, reject) => {
         //https://developers.momo.vn/#/docs/en/aiov2/?id=payment-method
         //parameters
@@ -8,13 +8,13 @@ let Payment = (hostname, description, cost) => {
         var requestId = partnerCode + new Date().getTime();
         var orderId = requestId;
         var orderInfo = description;
-        var redirectUrl = `${hostname}/return`;
-        var ipnUrl = `${hostname}/notify`;
+        var redirectUrl = `https://bookmydoctor.netlify.app/payment/return`;
+        var ipnUrl = `${process.env.HOST_BASE}/payment/notify`;
         // var ipnUrl = "localhost:3000/api/payment/notify"
         // var redirectUrl = "https://webhook.site/c91ae285-2eed-44e7-80d1-d124b23c6802";
         var amount = cost;
         var requestType = "captureWallet"
-        var extraData = ""; //pass empty value if your merchant does not have stores
+        var extraData = Buffer.from(doctor_id).toString('base64'); //pass empty value if your merchant does not have stores
 
         //before sign HMAC SHA256 with format
         //accessKey=$accessKey&amount=$amount&extraData=$extraData&ipnUrl=$ipnUrl&orderId=$orderId&orderInfo=$orderInfo&partnerCode=$partnerCode&redirectUrl=$redirectUrl&requestId=$requestId&requestType=$requestType
@@ -166,6 +166,8 @@ let NotifyPayment = (data) => {
     }
     resData.errCode = 0;
     resData.message = "Thanh toán thành công";
+    let doctor_id = Buffer.from("SGVsbG8gV29ybGQ=", 'base64').toString('ascii');
+    console.log(doctor_id); // doctor_id dang la string
     console.log('cap nhat trang thai giao dich');
     return resData;
 }
