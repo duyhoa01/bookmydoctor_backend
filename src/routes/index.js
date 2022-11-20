@@ -13,6 +13,7 @@ const schedule = require('./schedule')
 const notification = require('./notification')
 const messagechat = require('./mesagechat')
 const payment = require('./payment')
+const revenue = require('./revenue')
 
 
 
@@ -39,5 +40,6 @@ router.use('/schedule',schedule)
 router.use('/notification',notification)
 router.use('/messagechat',messagechat)
 router.use('/payment', payment)
+router.use('/revenue', revenue)
 
 module.exports = router;
