@@ -13,6 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       this.belongsTo(models.Status, { foreignKey: 'status_id', as: 'status' });
       this.belongsTo(models.Schedule, { foreignKey: 'schedule_id', as: 'schedule' });
       this.belongsTo(models.Patient, { foreignKey: 'patient_id', as: 'patient' });
+      this.belongsTo(models.Payment, { foreignKey: 'paymentId', as: 'payment' });
       this.hasMany(models.Notification, { foreignKey: 'appointment_id', as: 'notification' });
     }
   }
@@ -39,6 +40,10 @@ module.exports = (sequelize, DataTypes) => {
     },
     rating: {
       type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    paymentId: {
+      type: DataTypes.INTEGER,
       allowNull: true,
     }
   }, {

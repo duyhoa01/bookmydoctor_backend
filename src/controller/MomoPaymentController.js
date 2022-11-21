@@ -14,7 +14,12 @@ let Payment = async (req, res) => {
     if (!cost) {
         return res.status(400).json({ message: 'Thiếu giá tiền' });
     }
-    momoPaymentService.Payment(doctor_id, description, cost)
+    
+    let monthly = req.body.monthly;
+    if (!monthly) {
+        return res.status(400).json({ message: 'Thiếu thông tin tháng cần thanh toán' });
+    }
+    momoPaymentService.Payment(doctor_id, description, cost, monthly)
         .then(data => {
             return res.status(200).json({ message: data.payUrl });
         })

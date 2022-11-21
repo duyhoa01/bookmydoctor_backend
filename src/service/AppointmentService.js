@@ -59,6 +59,7 @@ let createAppointment = (data) => {
                 date: resSchedule.message.begin,
                 symptoms: data.symptom,
                 status_id: status.id,
+                paid: false
             });
             if (appointment) {
                 // Tao thong bao lich kham cho bac si

@@ -57,6 +57,7 @@ app.use('/Images', express.static('./Images'))
 let io= require('socket.io')(server);
 
 io.on('connection', (socket) => {
+  console.log('connection successfully');
   SocketServer(socket)
 })
 server.listen(port, () => {

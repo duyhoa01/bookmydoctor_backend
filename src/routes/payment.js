@@ -1,11 +1,7 @@
 const router = require('express').Router();
-const momo = require('../controller/MomoPaymentController');
-const authjwt = require('../middlewares/authJwt');
 
+const paymentController = require('../controller/PaymentController');
 
-router.post('/', momo.Payment);
-router.get('/return', momo.ReturnPayment);
-router.post('/notify', momo.NotifyPayment);
-
+router.post('/doctor/:id', paymentController.doctorPayment);
 
 module.exports = router;
