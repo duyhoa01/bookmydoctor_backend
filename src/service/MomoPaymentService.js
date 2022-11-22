@@ -1,7 +1,7 @@
 const dotenv = require('dotenv');
 dotenv.config();
 
-let Payment = (doctor_id, description, cost, monthly) => {
+let Payment = (data) => {
     return new Promise((resolve, reject) => {
         //https://developers.momo.vn/#/docs/en/aiov2/?id=payment-method
         //parameters
@@ -10,20 +10,20 @@ let Payment = (doctor_id, description, cost, monthly) => {
         var secretkey = process.env.secretkey;
         var requestId = partnerCode + new Date().getTime();
         var orderId = requestId;
+        console.log(data);
+        let description = '';
+        if (data.monthlyFee !== 0) description = description + data.monthlyFee + ' đ tiền phí hằng tháng. ';
+        if (data.appointmentFee !== 0) description = description + data.appointmentFee + ' đ tiền phí khám.';
         var orderInfo = description;
         var redirectUrl = `https://bookmydoctor.netlify.app/payment-momo/return`;
-        // var ipnUrl = "https://bookmydoctor.onrender.com/api/payment-momo/notify";
-        var ipnUrl = "https://984a-113-176-100-204.ap.ngrok.io/api/payment-momo/notify"
-        // var redirectUrl = "https://webhook.site/c91ae285-2eed-44e7-80d1-d124b23c6802";
-        var amount = cost;
+        var ipnUrl = "https://bookmydoctor.onrender.com/api/payment-momo/notify";
+        // var ipnUrl = "https://65ef-113-176-100-204.ap.ngrok.io/api/payment-momo/notify"
+        // var ipnUrl = "https://webhook.site/c91ae285-2eed-44e7-80d1-d124b23c6802";
+        var amount = data.totalPayment;
         var requestType = "captureWallet"
-        let data = {
-            doctorId: doctor_id,
-            monthly: monthly
-        }
         var dataJson = JSON.stringify(data);
         var extraData = Buffer.from(dataJson).toString('base64'); //pass empty value if your merchant does not have stores
-        // var extraData = "";
+
         //before sign HMAC SHA256 with format
         //accessKey=$accessKey&amount=$amount&extraData=$extraData&ipnUrl=$ipnUrl&orderId=$orderId&orderInfo=$orderInfo&partnerCode=$partnerCode&redirectUrl=$redirectUrl&requestId=$requestId&requestType=$requestType
         var rawSignature = "accessKey=" + accessKey + "&amount=" + amount + "&extraData=" + extraData + "&ipnUrl=" + ipnUrl + "&orderId=" + orderId + "&orderInfo=" + orderInfo + "&partnerCode=" + partnerCode + "&redirectUrl=" + redirectUrl + "&requestId=" + requestId + "&requestType=" + requestType
@@ -175,11 +175,9 @@ let NotifyPayment = (data) => {
     resData.errCode = 0;
     resData.message = "Thanh toán thành công";
     let extraData = Buffer.from(data.extraData, 'base64').toString('ascii');
-    console.log(typeof(extraData)); 
-    console.log(extraData); 
-    const data2 = JSON.parse(extraData);
-
-    console.log('cap nhat trang thai giao dich');
+    let dataPayment = JSON.parse(extraData);
+    dataPayment.transId = data.transId;
+    resData.dataPayment = dataPayment;
     return resData;
 }
 module.exports = {

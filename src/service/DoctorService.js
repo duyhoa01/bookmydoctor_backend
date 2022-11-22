@@ -427,7 +427,46 @@ let getRevenueOfDoctor = async (data) => {
         }
     });
 }
-
+let updatePaidDoctor = async(doctor_id, date) => {
+    try {
+        await db.Doctor.update(
+            {
+                paid: date
+            },
+            {
+                where: {id:doctor_id}
+            }
+        )
+    } catch (e) {
+        console.log(e);
+    }
+}
+let checkPaid = async(user_id) => {
+    try {
+        let doctor = await db.Doctor.findOne({
+            include: {
+                model: db.User,
+                required: true,
+                as: 'user',
+                where: {id: user_id}
+            },
+        })
+        if (!doctor.paid) return false;
+        const d = new Date();
+        let month = d.getMonth() + 1;
+        let year = d.getFullYear();
+        monthly = new Date(year + "-" + month + "-01");
+        let monthlyPayment = doctor.paid;
+        // kiem tra co can phai tra phi dung hang thang khong
+        if (monthlyPayment.getMonth() === d.getMonth() && monthlyPayment.getFullYear() === d.getFullYear()) {
+            return true;
+        } else {
+            return false;
+        }
+    } catch (e) {
+        console.log(e);
+    }
+}
 module.exports = {
     getAllDoctor: getAllDoctor,
     getDoctorById: getDoctorById,
@@ -438,7 +477,9 @@ module.exports = {
     getDoctorByHospital: getDoctorByHospital,
     RatingDoctor,
     getRevenueOfAllDoctors: getRevenueOfAllDoctors,
-    getRevenueOfDoctor: getRevenueOfDoctor
+    getRevenueOfDoctor: getRevenueOfDoctor,
+    updatePaidDoctor,
+    checkPaid
 }
 
 

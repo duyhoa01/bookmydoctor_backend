@@ -6,6 +6,7 @@ const emailService = require('./emailService');
 const notificationService = require('./NotificationService');
 const violationService = require('./ViolationService');
 const doctorService = require('./DoctorService');
+const appointment = require('../models/appointment');
 
 
 let createAppointment = (data) => {
@@ -34,7 +35,7 @@ let createAppointment = (data) => {
                     patient_id: patient.id
                 }
             })
-            if(check) {
+            if (check) {
                 resData.errCode = 4;
                 resData.message = 'Bạn đã đăng ký lịch khám này';
                 resolve(resData);
@@ -277,6 +278,16 @@ let acceptAppointment = (id, userId) => {
     return new Promise(async (resolve, reject) => {
         let resData = {};
         try {
+            ///////////
+            // Kiem tra xem bac si da tra tien phi su dung thang hay chua
+            let checkPaid = await doctorService.checkPaid(userId);
+            if (!checkPaid) {
+                resData.errCode = 4;
+                resData.message = 'Bạn chưa trả phí sử dụng tháng này';
+                resolve(resData);
+                return;
+            }
+            ///////////
             let appointment = await db.Appointment.findByPk(id, {
                 include: [
                     {
@@ -983,6 +994,40 @@ let PatientRatingAppointment = (userIdPatient, appointmentId, scores) => {
         }
     })
 }
+let updatePaymentIdAppointment = async (doctor_id, paymentId, datePayment) => {
+    try {
+        let appointments = await db.Appointment.findAll({
+            include: [
+                {
+                    model: db.Schedule,
+                    required: true,
+                    as: 'schedule',
+                    where: { doctor_id: doctor_id }
+                },
+                {
+                    model: db.Status,
+                    required: true,
+                    as: 'status',
+                    where: { name: "DONE" }
+                }
+            ],
+            where: {
+                paymentId: null,
+                date: { [Op.lte]: datePayment }
+            }
+
+        })
+
+        if (appointments.length !== 0) {
+            // console.log(appointments);
+            console.log('length',appointments.length);
+            appointments.map(a => {a.paymentId = paymentId; a.save()});
+        }
+
+    } catch (e) {
+        console.log(e);
+    }
+}
 module.exports = {
     createAppointment: createAppointment,
     getAllAppointments: getAllAppointments,
@@ -994,5 +1039,6 @@ module.exports = {
     deleteAppointment: deleteAppointment,
     ReportAppointment: ReportAppointment,
     AdminHandlesAppointment: AdminHandlesAppointment,
-    PatientRatingAppointment
+    PatientRatingAppointment,
+    updatePaymentIdAppointment
 }

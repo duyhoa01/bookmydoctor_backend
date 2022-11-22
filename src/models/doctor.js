@@ -47,7 +47,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull:false,
     },
     paid: {
-      type: DataTypes.BOOLEAN,
+      type: DataTypes.DATE,
       allowNull:true,
     }
   }, {
