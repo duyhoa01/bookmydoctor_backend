@@ -71,6 +71,7 @@ let createPayment = (data) => {
                 resolve(resData);
                 return;
             }
+            console.log('Bắt đầu tạo payment');
             let payment = await db.Payment.create({
                 doctor_id: data.doctor_id,
                 datePayment: data.datePayment,
@@ -83,6 +84,7 @@ let createPayment = (data) => {
 
             if (payment) {
                 try {
+                    console.log('tạo thành công payment');
                     if (payment.monthlyFee != 0) {
                         await DoctorService.updatePaidDoctor(payment.doctor_id, payment.monthly)
                     }
