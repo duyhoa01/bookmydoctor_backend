@@ -134,6 +134,11 @@ let acceptAppointment = async(req, res) => {
             message: resData.message
         })
     }
+    if(resData.errCode === 4) {
+        return res.status(403).json({
+            message: resData.message
+        })
+    }
     if(resData.errCode === 0) {
         return res.status(200).json({
             message: resData.message

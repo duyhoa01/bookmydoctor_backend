@@ -11,6 +11,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       this.belongsTo(models.Doctor, { foreignKey: 'doctor_id', as: 'doctor' }); 
+      this.hasMany(models.Appointment, { foreignKey: 'paymentId', as: 'appointment' }); 
     }
   }
   Payment.init({
@@ -38,6 +39,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATE,
       allowNull: false,
     },
+    transId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    }
   }, {
     sequelize,
     modelName: 'Payment',

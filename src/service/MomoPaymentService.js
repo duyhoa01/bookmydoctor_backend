@@ -1,7 +1,7 @@
 const dotenv = require('dotenv');
 dotenv.config();
 
-let Payment = (doctor_id, description, cost) => {
+let Payment = (data) => {
     return new Promise((resolve, reject) => {
         //https://developers.momo.vn/#/docs/en/aiov2/?id=payment-method
         //parameters
@@ -10,16 +10,20 @@ let Payment = (doctor_id, description, cost) => {
         var secretkey = process.env.secretkey;
         var requestId = partnerCode + new Date().getTime();
         var orderId = requestId;
+        console.log(data);
+        let description = '';
+        if (data.monthlyFee !== 0) description = description + data.monthlyFee + ' đ tiền phí hằng tháng. ';
+        if (data.appointmentFee !== 0) description = description + data.appointmentFee + ' đ tiền phí khám.';
         var orderInfo = description;
-        var redirectUrl = `https://bookmydoctor.netlify.app/payment/return`;
-        var ipnUrl = "https://bookmydoctor.onrender.com/api/payment/notify";
-        // var ipnUrl = "https://1a95-59-153-246-143.ap.ngrok.io/api/payment/notify"
-        // var ipnUrl = "localhost:3000/api/payment/notify"
-        // var redirectUrl = "https://webhook.site/c91ae285-2eed-44e7-80d1-d124b23c6802";
-        var amount = cost;
+        var redirectUrl = `https://bookmydoctor.netlify.app/payment-momo/return`;
+        var ipnUrl = "https://bookmydoctor.onrender.com/api/payment-momo/notify";
+        // var ipnUrl = "https://65ef-113-176-100-204.ap.ngrok.io/api/payment-momo/notify"
+        // var ipnUrl = "https://webhook.site/c91ae285-2eed-44e7-80d1-d124b23c6802";
+        var amount = data.totalPayment;
         var requestType = "captureWallet"
-        var extraData = Buffer.from(doctor_id.toString()).toString('base64'); //pass empty value if your merchant does not have stores
-        // var extraData = "";
+        var dataJson = JSON.stringify(data);
+        var extraData = Buffer.from(dataJson).toString('base64'); //pass empty value if your merchant does not have stores
+
         //before sign HMAC SHA256 with format
         //accessKey=$accessKey&amount=$amount&extraData=$extraData&ipnUrl=$ipnUrl&orderId=$orderId&orderInfo=$orderInfo&partnerCode=$partnerCode&redirectUrl=$redirectUrl&requestId=$requestId&requestType=$requestType
         var rawSignature = "accessKey=" + accessKey + "&amount=" + amount + "&extraData=" + extraData + "&ipnUrl=" + ipnUrl + "&orderId=" + orderId + "&orderInfo=" + orderInfo + "&partnerCode=" + partnerCode + "&redirectUrl=" + redirectUrl + "&requestId=" + requestId + "&requestType=" + requestType
@@ -170,9 +174,10 @@ let NotifyPayment = (data) => {
     }
     resData.errCode = 0;
     resData.message = "Thanh toán thành công";
-    let doctor_id = Buffer.from(data.extraData, 'base64').toString('ascii');
-    console.log(doctor_id); // doctor_id dang la string
-    console.log('cap nhat trang thai giao dich');
+    let extraData = Buffer.from(data.extraData, 'base64').toString('ascii');
+    let dataPayment = JSON.parse(extraData);
+    dataPayment.transId = data.transId;
+    resData.dataPayment = dataPayment;
     return resData;
 }
 module.exports = {

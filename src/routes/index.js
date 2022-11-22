@@ -12,7 +12,8 @@ const appointment = require('./appointment');
 const schedule = require('./schedule')
 const notification = require('./notification')
 const messagechat = require('./mesagechat')
-const payment = require('./payment')
+const paymentMomo = require('./paymentMomo');
+const payment = require('./payment');
 const revenue = require('./revenue')
 
 
@@ -39,6 +40,7 @@ router.use('/appointment', appointment)
 router.use('/schedule',schedule)
 router.use('/notification',notification)
 router.use('/messagechat',messagechat)
+router.use('/payment-momo', paymentMomo)
 router.use('/payment', payment)
 router.use('/revenue', revenue)
 
