@@ -83,10 +83,10 @@ let createPayment = (data) => {
 
             if (payment) {
                 try {
-                    if (payment.monthlyFee != 0){
+                    if (payment.monthlyFee != 0) {
                         await DoctorService.updatePaidDoctor(payment.doctor_id, payment.monthly)
-                    } 
-                    if (payment.appointmentFee != 0){
+                    }
+                    if (payment.appointmentFee != 0) {
                         await AppointmentService.updatePaymentIdAppointment(payment.doctor_id, payment.id, payment.datePayment)
                     }
                     resData.errCode = 0;
@@ -105,7 +105,7 @@ let createPayment = (data) => {
     })
 }
 let getAllPayment = (key, page, limit, begin, end) => {
-    return new Promise(async(resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         try {
             page = page - 0;
             limit = limit - 0;
@@ -166,10 +166,10 @@ let getAllPayment = (key, page, limit, begin, end) => {
             reject(error);
         }
     })
-    
+
 }
 let getPaymentById = (id, userId, role_name) => {
-    return new Promise(async(resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         try {
             // let [row] = await db.Doctor.update(
             //     {
@@ -203,7 +203,7 @@ let getPaymentById = (id, userId, role_name) => {
                         model: db.User,
                         required: true,
                         as: 'user',
-                        where: {id: userId}
+                        where: { id: userId }
                     }
                 })
                 if (!doctor) {
@@ -224,7 +224,7 @@ let getPaymentById = (id, userId, role_name) => {
                     require: true,
                     as: 'appointment',
                 },
-                where: [{id: id}, requirement]
+                where: [{ id: id }, requirement]
             })
 
             if (!payment) {
@@ -241,21 +241,50 @@ let getPaymentById = (id, userId, role_name) => {
         }
     })
 }
-let getPaymentOfDoctor = (doctorId) => {
-    return new Promise(async(resolve, reject) => {
+let getPaymentOfDoctor = (doctorId, page, limit, begin, end) => {
+    return new Promise(async (resolve, reject) => {
         try {
-            let resData = {};
-            let payments = await db.Payment.findAll({
+            page = page - 0;
+            limit = limit - 0;
+            let offset = page * limit;
+            let requirementDate = {};
+            if (begin !== '') {
+                let dateStart = new Date(begin);
+                let dateEnd = new Date();
+                if (end !== '') {
+                    dateEnd = new Date(end);
+                    dateEnd.setHours(dateEnd.getHours() - 7);
+                }
+                dateStart.setHours(dateStart.getHours() - 7);
+                console.log(dateStart, dateEnd);
+                requirementDate = {
+                    datePayment: {
+                        [Op.between]: [dateStart, dateEnd]
+                    }
+                }
+            }
+            const { count, rows } = await db.Payment.findAndCountAll({
                 include:
                 {
                     model: db.Appointment,
                     require: true,
                     as: 'appointment',
                 },
-                where: {doctor_id: doctorId}
+                where: [{ doctor_id: doctorId }, requirementDate],
+                order: [
+                    ['datePayment', 'DESC']
+                ],
+                offset: offset,
+                limit: limit,
+                raw: true,
+                nest: true
             })
-            resData.errCode = 0;
-            resData.message = payments;
+            let resData = {};
+            resData.payment = rows;
+            resData.limit = limit;
+            resData.totalPages = Math.ceil(count / limit);
+            resData.totalElements = count
+            resData.page = page;
             resolve(resData);
         } catch (error) {
             reject(error);

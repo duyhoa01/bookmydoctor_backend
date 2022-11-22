@@ -174,6 +174,7 @@ let NotifyPayment = (data) => {
     }
     resData.errCode = 0;
     resData.message = "Thanh toán thành công";
+    console.log("Thanh toán thành công");
     let extraData = Buffer.from(data.extraData, 'base64').toString('ascii');
     let dataPayment = JSON.parse(extraData);
     dataPayment.transId = data.transId;
