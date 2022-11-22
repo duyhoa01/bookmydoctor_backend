@@ -59,10 +59,22 @@ let getPaymentOfDoctor = async (req, res) => {
             errMessage: "Thiếu tham số id doctor"
         })
     }
-    let resData = await paymentService.getPaymentOfDoctor(doctorId, req.userID, req.role_name);
-    if (resData.errCode === 0) {
-        return res.status(200).json({message: resData.message});
-    }
+    let pageNumber = req.query.page === undefined ? 0: req.query.page;
+    let limit = req.query.limit === undefined ? 20 : req.query.limit;
+    let begin = req.query.begin === undefined ? '' : req.query.begin;
+    let end = req.query.end === undefined ? '' : req.query.end;
+    let resData = await paymentService.getAllPayment(doctorId, pageNumber, limit, begin, end);
+    let page ={};
+    page.size= resData.size;
+    page.totalPages= resData.totalPages;
+    page.totalElements = resData.totalElements;
+    page.page = resData.page;
+    return res.status(200).json({
+        erroCode:0,
+        message: 'OK',
+        page: page,
+        payment: resData.payment,
+    })
 }
 module.exports = {
     doctorPayment,
