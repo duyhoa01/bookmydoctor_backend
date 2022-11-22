@@ -63,7 +63,7 @@ let getPaymentOfDoctor = async (req, res) => {
     let limit = req.query.limit === undefined ? 20 : req.query.limit;
     let begin = req.query.begin === undefined ? '' : req.query.begin;
     let end = req.query.end === undefined ? '' : req.query.end;
-    let resData = await paymentService.getAllPayment(doctorId, pageNumber, limit, begin, end);
+    let resData = await paymentService.getPaymentOfDoctor(doctorId, pageNumber, limit, begin, end);
     let page ={};
     page.size= resData.size;
     page.totalPages= resData.totalPages;
