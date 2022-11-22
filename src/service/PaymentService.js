@@ -271,12 +271,12 @@ let getPaymentOfDoctor = (doctorId, page, limit, begin, end) => {
                 }
             }
             const { count, rows } = await db.Payment.findAndCountAll({
-                include:
-                {
-                    model: db.Appointment,
-                    require: true,
-                    as: 'appointment',
-                },
+                // include:
+                // {
+                //     model: db.Appointment,
+                //     required: true,
+                //     as: 'appointment',
+                // },
                 where: [{ doctor_id: doctorId }, requirementDate],
                 order: [
                     ['datePayment', 'DESC']
