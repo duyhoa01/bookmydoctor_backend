@@ -1,6 +1,8 @@
 const { QueryTypes } = require('sequelize');
 const db = require('../models/index');
 const { Op, where } = require('sequelize');
+const doctorService = require('./DoctorService');
+const appointmentService = require('./AppointmentService');
 
 let doctorPayment = (id) => {
     return new Promise(async (resolve, reject) => {
@@ -85,11 +87,14 @@ let createPayment = (data) => {
             if (payment) {
                 try {
                     console.log('tạo thành công payment');
+                    console.log('kết quả tạo\n', payment);
                     if (payment.monthlyFee != 0) {
-                        await DoctorService.updatePaidDoctor(payment.doctor_id, payment.monthly)
+                        await doctorService.updatePaidDoctor(payment.doctor_id, payment.monthly);
+                        console.log('cập nhật thông tin bác sĩ thành công');
                     }
                     if (payment.appointmentFee != 0) {
-                        await AppointmentService.updatePaymentIdAppointment(payment.doctor_id, payment.id, payment.datePayment)
+                        await appointmentService.updatePaymentIdAppointment(payment.doctor_id, payment.id, payment.datePayment);
+                        console.log('cập nhật thông tin appointment thành công');
                     }
                     resData.errCode = 0;
                     resData.message = payment;
