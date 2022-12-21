@@ -76,9 +76,17 @@ let getPaymentOfDoctor = async (req, res) => {
         payment: resData.payment,
     })
 }
+let getAllInfoPayment = async(req, res) => {
+    let resData = await paymentService.getAllInfoPayment();
+    return res.status(200).json({
+        erroCode:0,
+        message: resData
+    })
+}
 module.exports = {
     doctorPayment,
     getAllPayment,
     getPaymentById,
     getPaymentOfDoctor,
+    getAllInfoPayment
 }

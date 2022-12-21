@@ -178,27 +178,6 @@ let getAllPayment = (key, page, limit, begin, end) => {
 let getPaymentById = (id, userId, role_name) => {
     return new Promise(async (resolve, reject) => {
         try {
-            // let [row] = await db.Doctor.update(
-            //     {
-            //         paid: null
-            //     },
-            //     {
-            //         where: {paid: {[Op.ne]: null}}
-            //     }
-            // )
-            // console.log('so bac si da sua ',row);
-            // let [row2] = await db.Appointment.update(
-            //     {
-            //         paymentId: null
-            //     },
-            //     {
-            //         where: {paymentId: {[Op.ne]: null}}
-            //     }
-            // )
-            // console.log('so appointment da sua ',row2);
-            // await db.Payment.destroy({
-            //     where: {datePayment: {[Op.lt]: new Date()}}
-            // })
             let resData = {};
             let requirement = {};
 
@@ -298,10 +277,65 @@ let getPaymentOfDoctor = (doctorId, page, limit, begin, end) => {
         }
     })
 }
+let getAllInfoPayment = () => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            await db.sequelize.query("SET sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'");
+            let query = `select doctor_id, CONCAT(u.firsname, ' ', u.lastname) as name, u.phoneNumber, u.email, done, revenue, sum_cost_appointment_unpaid, 
+            date_paid
+            from
+            (select table1.id as doctor_id, table1.user_id, table1.paid as date_paid, table1.sum_apponintment as revenue, table1.count_appointment as done, sum(sch_unpaid.cost) as sum_cost_appointment_unpaid from
+            (select Doctors.id, Doctors.user_id, Doctors.paid, sum(sch.cost) as sum_apponintment, count(sch.id) as count_appointment from Doctors 
+            left join 
+            (Select Schedules.id, Schedules.cost, Schedules.doctor_id from Schedules inner join
+            (select a.Schedule_id
+            from (select Appointments.id, Appointments.Schedule_id, Appointments.status_id from Appointments where ((Appointments.date between '2022/12/1' and '2023/1/1'))) a 
+            inner join Statuses on a.status_id = Statuses.id
+            where Statuses.name = "DONE") ap
+            on Schedules.id = ap.Schedule_id) sch
+            on sch.doctor_id = Doctors.id
+            group by Doctors.id) as table1
+            left join 
+            (Select Schedules.id, Schedules.cost, Schedules.doctor_id from Schedules inner join
+            (select a.Schedule_id
+            from (select Appointments.id, Appointments.Schedule_id, Appointments.status_id from Appointments where ((Appointments.date between '2022/12/1' and '2023/1/1') and Appointments.paymentId is null)) a 
+            inner join Statuses on a.status_id = Statuses.id
+            where Statuses.name = "DONE") ap
+            on Schedules.id = ap.Schedule_id) sch_unpaid
+            on sch_unpaid.doctor_id = table1.id
+            group by table1.id) table2
+            inner join Users as u on u.id = table2.user_id
+            order by revenue desc;`
+            // let resData = await db.sequelize.query(sql,{ replacements: { beginDate: data.begin, endDate: data.end },type: QueryTypes.SELECT })
+            let resData = await db.sequelize.query(query, { type: QueryTypes.SELECT })
+            let arr = Array.from(resData)
+            arr.forEach(d => {
+                d.revenue = d.revenue === null ? 0 : d.revenue;
+                d.done = d.done === null ? 0 : d.done;
+                d.profits = d.revenue * 0.9;
+                d.sum_cost_appointment_unpaid = d.sum_cost_appointment_unpaid === null ? 0 :  d.sum_cost_appointment_unpaid;
+                let date = new Date('2022/12/1');
+                let date2 = new Date();
+                date2.setDate(date.getDate() - 2);
+                console.log(date2);
+                if ((d.date_paid === null) || d.date_paid < date2 ) d.monthlyFee = process.env.monthlyFee
+                else d.monthlyFee = 0;
+                return d;
+            })
+            return resolve({
+                errCode: 0,
+                message: arr
+            })
+        } catch (error) {
+            reject(error);
+        }
+    })
+}
 module.exports = {
     doctorPayment,
     createPayment,
     getAllPayment,
     getPaymentById,
-    getPaymentOfDoctor
+    getPaymentOfDoctor,
+    getAllInfoPayment
 }
