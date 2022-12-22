@@ -77,10 +77,38 @@ let getPaymentOfDoctor = async (req, res) => {
     })
 }
 let getAllInfoPayment = async(req, res) => {
-    let resData = await paymentService.getAllInfoPayment();
+    if(!req.query.begin){
+        return res.status(400).json({
+            errCode:"2",
+            message: 'thiếu thời gian bắt đầu'
+        })
+    }
+    if(!req.query.end){
+        return res.status(400).json({
+            errCode:"2",
+            message: 'thiếu thời gian kết thúc'
+        })
+    }
+    let pageNumber = req.query.page === undefined ? 0: req.query.page
+    let size = req.query.size === undefined ? 10 : req.query.size
+    data = {
+        begin: req.query.begin,
+        end: req.query.end,
+        pageNumber:pageNumber,
+        size:size
+    }
+    let resData = await paymentService.getAllInfoPayment(data);
+    let page ={}
+    page.size= resData.size
+    page.totalPages= resData.totalPages
+    page.totalElements = resData.totalElements
+    page.page = resData.page
     return res.status(200).json({
         erroCode:0,
-        message: resData
+        message: 'OK',
+        page: page,
+        statistics: resData.statistics,
+        data: resData.data
     })
 }
 module.exports = {
