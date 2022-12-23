@@ -39,7 +39,7 @@ let hashUserPassword = (password) => {
 }
 
 let buildUrlEmail= (token) =>{
-    let result = `${process.env.HOST_BASE}/api/auth/verify-account?token=${token}` 
+    let result = `${process.env.HOST_BASE}/auth/verify-account?token=${token}` 
     return result;
 }
 
@@ -105,7 +105,7 @@ let verifyUser = (data)=>{
             if(!data.token){
                 resolve({
                     errCode:1,
-                    errMessage:'Loi token'
+                    errMessage:'Lỗi token'
                 })
             } else{
                 let user=await db.User.findOne({
@@ -123,12 +123,12 @@ let verifyUser = (data)=>{
 
                     resolve({
                         errCode:0,
-                        errMessage: 'Xac thuc thanh cong'
+                        errMessage: 'xác thực thành công'
                     })
                 } else {
                     resolve({
                         errCode:2,
-                        errMessage: 'Tai khoan da duoc kich hoat hoac khong ton tai'
+                        errMessage: 'Tài khoản đã được kích hoạt hoặc không tồn tại'
                     })
                 }
 
