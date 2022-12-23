@@ -87,15 +87,15 @@ let singup = async (req,res)=>{
     
 }
 let verifyUser= async(req,res)=>{
-    try{
-        let infor= await userService.verifyUser(req.query);
+    let infor= await userService.verifyUser(req.query);
+    if(infor.errCode==0){
         return res.status(200).json(infor)
-    }catch(e){
-        return res.status(200).json({
-            errCode:-1,
-            errMessage:'Error from server'          
-        })
-    }
+    } else if(infor.errCode==1){
+        return res.status(400).json(infor)
+    } else if(infor.errCode==2){
+        return res.status(404).json(infor)
+    } 
+    
 }
 //  Upload Image Controller
 const storage = multer.diskStorage({
