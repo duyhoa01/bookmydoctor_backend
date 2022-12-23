@@ -7,13 +7,12 @@ let addMessage = async (req,res) => {
     } else{
         req.body.image=req.file.path;
     }
-    if (!req.body.from_user || !req.body.to_user || !req.body.text  ) {
+    if ( !req.body.from_user || !req.body.to_user || (req.body.image == '' &&  !req.body.text)   ) {
         return res.status(400).json({
             erroCode:1,
-            message:'nhap day du thong tin'
+            message:'nhập đầy đủ thông tin'
         })
     }
-    console.log(req.body)
     let message = await messageService.addMessage(req.body);
     return res.status(200).json(message);
 }
