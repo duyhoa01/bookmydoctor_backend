@@ -396,7 +396,7 @@ let getListUserChatWithUser= async (data) => {
                 })
             }  
             uniq = [...new Set(arr)];
-            let sql ="select * from (select p1.id,p1.email,p1.firsname, p1.lastname, p1.image,p1.gender,p1.phoneNumber,p1.birthday,p1.address,p1.status,p1.role_id, m.id as 'message.id' ,m.date as 'message.date', m.from_user as 'message.from_user', m.text as 'message.text', m.image as 'message.image' ,m.to_user as 'message.to_user',ROW_NUMBER() OVER(PARTITION BY p1.id ) rn from (select * from Users u where id in (:uniq)) p1 INNER JOIN MessageChats m ON (m.to_user = :user_id and m.from_user = p1.id) or ( m.from_user = :user_id and m.to_user = p1.id) ORDER BY m.date DESC) a WHERE rn = 1; ";
+            let sql ="select * from (select p1.id,p1.email,p1.firsname, p1.lastname, p1.image,p1.gender,p1.phoneNumber,p1.birthday,p1.address,p1.status,p1.role_id, m.id as 'message.id' ,m.date as 'message.date', m.from_user as 'message.from_user', m.text as 'message.text', m.image as 'message.image' ,m.to_user as 'message.to_user',ROW_NUMBER() OVER(PARTITION BY p1.id ORDER BY date DESC) rn from (select * from Users u where id in (:uniq)) p1 INNER JOIN MessageChats m ON (m.to_user = :user_id and m.from_user = p1.id) or ( m.from_user = :user_id and m.to_user = p1.id) ORDER BY m.date DESC) a WHERE rn = 1; ";
             let listUsers = await db.sequelize.query(sql,{ replacements: { uniq: uniq, user_id: data.id },type: QueryTypes.SELECT })
             return resolve({
                 errorCode:0,
