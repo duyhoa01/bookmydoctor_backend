@@ -39,7 +39,7 @@ let hashUserPassword = (password) => {
 }
 
 let buildUrlEmail= (token) =>{
-    let result = `${process.env.HOST_BASE}/auth/verify-account?token=${token}` 
+    let result = `${process.env.HOST_BASE_FRONTEND}/auth/verify-account?token=${token}` 
     return result;
 }
 
