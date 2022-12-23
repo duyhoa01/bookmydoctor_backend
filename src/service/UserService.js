@@ -58,7 +58,7 @@ let createNewUser = async (data, roleName) => {
                 let id='';
                 if(data.status == '0'){
                     id= uuidv4();
-                    await emailService.sendSimpleEmail({
+                    emailService.sendSimpleEmail({
                         receiverEmail: data.email,
                         patientName:data.lastname,
                         redirectLink:buildUrlEmail(id)
