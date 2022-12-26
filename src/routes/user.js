@@ -5,7 +5,7 @@ const userController = require('../controller/UserController');
 const fileUploader = require('../config/cloudinary.config');
 const authJwt = require('../middlewares/authJwt')
 
-router.get('/:id/userchat',userController.getListUserChatWithUser);
+router.get('/:id/userchat',authJwt.authenToken,authJwt.authenUser,userController.getListUserChatWithUser);
 
 router.post('/password/:id',authJwt.authenToken, authJwt.isAdminOrUser,userController.changePassword);
 
