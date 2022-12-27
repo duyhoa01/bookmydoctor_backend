@@ -803,14 +803,30 @@ let ReportAppointment = (id, user_id) => {
             await appointment.save();
             // Gui thong bao lich kham bi bao cao cho benh nhan va bac si
             // Thong bao cho benh nhan
-            let message = `Bạn đã báo bị báo cáo không đến khám theo lịch ngày ${appointment.date.toLocaleString('en-US', { timeZone: "Asia/Jakarta" })}, admin đang tiến hành xác thực`;
+            let message = `Bạn đã bị báo cáo không đến khám theo lịch ngày ${appointment.date.toLocaleString('en-US', { timeZone: "Asia/Jakarta" })}, admin đang tiến hành xác thực`;
             notificationService.CreateNotification(appointment.id, appointment.patient.user.id, message);
             notificationService.deleteNotificationOfUserLastWeek(appointment.patient.user.id);
             // Thong bao cho bac si
             let message2 = `Bạn đã báo cáo thành công bệnh nhân ${appointment.patient.user.firsname} ${appointment.patient.user.lastname} không đến khám ngày ${appointment.date.toLocaleString('en-US', { timeZone: "Asia/Jakarta" })}, admin đang tiến hành xử lý`;
             notificationService.CreateNotification(appointment.id, appointment.schedule.doctor.user.id, message2);
             notificationService.deleteNotificationOfUserLastWeek(appointment.schedule.doctor.user.id);
-
+            // Thong bao cho admin
+            // get user_id admin
+            let admin = await db.User.findOne({
+                attributes: ["id"],
+                include: {
+                    model: db.Role,
+                    required: true,
+                    as : 'role',
+                    where: {
+                        name: "ROLE_ADMIN",
+                    }
+                }
+            })
+            // tao thong bao
+            let message3 = `Bác sĩ ${appointment.schedule.doctor.user.firsname} ${appointment.schedule.doctor.user.lastname} đã báo cáo bệnh nhân ${appointment.patient.user.firsname} ${appointment.patient.user.lastname} không đến khám theo lịch ngày ${appointment.date.toLocaleString('en-US', { timeZone: "Asia/Jakarta" })}`;
+            notificationService.CreateNotification(appointment.id, admin.id, message3);
+            notificationService.deleteNotificationOfUserLastWeek(appointment.patient.user.id);
             resData.errCode = 0;
             resData.message = [
                 {
@@ -820,7 +836,11 @@ let ReportAppointment = (id, user_id) => {
                 {
                     usersId: [appointment.schedule.doctor.user.id],
                     message: message2
-                }
+                },
+                {
+                    usersId: [admin.id],
+                    message: message3
+                },
             ];
 
             resolve(resData);

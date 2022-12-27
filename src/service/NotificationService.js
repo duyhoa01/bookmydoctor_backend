@@ -48,7 +48,9 @@ let deleteNotificationOfUserLastWeek = (userId) => {
                     as: 'user',
                     where: { id: userId }
                 },
-                where: { createdAt: { [Op.lt]: date } }
+                where: {
+                    status: true,
+                    createdAt: { [Op.lt]: date } }
             })
             resolve(true);
         } catch (err) {
