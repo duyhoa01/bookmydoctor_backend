@@ -16,6 +16,9 @@ let createAppointment = (data) => {
             let [status, created] = await db.Status.findOrCreate({
                 where: { name: "NEW" }, raw: true
             })
+            let [status2, created2] = await db.Status.findOrCreate({
+                where: { name: "CANCEL" }, raw: true
+            })
             let data2 = {};
             data2.id = data.user_id;
             let data3 = {};
@@ -32,7 +35,10 @@ let createAppointment = (data) => {
             let check = await db.Appointment.findOne({
                 where: {
                     schedule_id: resSchedule.message.id,
-                    patient_id: patient.id
+                    patient_id: patient.id,
+                    status_id: {
+                        [Op.ne]: status2.id,
+                    }
                 }
             })
             if (check) {
