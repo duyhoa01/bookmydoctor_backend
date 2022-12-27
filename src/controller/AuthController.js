@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const AuthService = require('../service/AuthService');
 const userService= require('../service/UserService');
 const patientService=require('../service/PatientService');
+const moment =require('moment');
 
 const multer = require('multer')
 const path = require('path')
@@ -52,7 +53,19 @@ let singup = async (req,res)=>{
     if (!req.body.email || !req.body.password || !req.body.firsname || !req.body.lastname || !req.body.gender || !req.body.phoneNumber || !req.body.birthday || !req.body.address  ) {
         return res.status(400).json({
             erroCode:1,
-            message:'nhap day du thong tin'
+            message:'nhập đầy đủ thông tin'
+        })
+    }
+    if(req.body.password.length < 5 || req.body.password.length>15 ){
+        return res.status(400).json({
+            erroCode:1,
+            message:'độ dài mật khẩu phải lớn hơn hoặc bằng 5 ký tự và không quá 15 ký tự'
+        })
+    }
+    if(!moment(req.body.birthday, 'YYYY-MM-DD',true).isValid()){
+        return res.status(400).json({
+            erroCode:1,
+            message:'định dạng birthday không đúng. Ví dụ về định dạng đúng : 2022-11-20'
         })
     }
     if (!req.file){
@@ -74,15 +87,15 @@ let singup = async (req,res)=>{
     
 }
 let verifyUser= async(req,res)=>{
-    try{
-        let infor= await userService.verifyUser(req.query);
+    let infor= await userService.verifyUser(req.query);
+    if(infor.errCode==0){
         return res.status(200).json(infor)
-    }catch(e){
-        return res.status(200).json({
-            errCode:-1,
-            errMessage:'Error from server'          
-        })
-    }
+    } else if(infor.errCode==1){
+        return res.status(400).json(infor)
+    } else if(infor.errCode==2){
+        return res.status(404).json(infor)
+    } 
+    
 }
 //  Upload Image Controller
 const storage = multer.diskStorage({

@@ -4,10 +4,15 @@ let changePassword = async (req,res) =>{
     if(!req.body.password || !req.body.newPassword){
         return res.status(400).json({
             erroCode:1,
-            message:'nhap day du thong tin'
+            message:'nhập đầy đủ thông tin'
         })  
     }
-    console.log(req.params)
+    if(req.body.newPassword.length < 5 || req.body.newPassword.length>15 ){
+        return res.status(400).json({
+            erroCode:1,
+            message:'độ dài mật khẩu phải lớn hơn hoặc bằng 5 ký tự và không quá 15 ký tự'
+        })
+    }
     let response= await userService.changePassword(req.params,req.body)
     if(response.errCode == 4){
         return res.status(401).json(response)
